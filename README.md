@@ -24,10 +24,10 @@ This project is designed to run against the **MLIT Real Estate Information Libra
 
 Two backends are supported via the `DATA_SOURCE` environment variable:
 
-| Backend | Description |
-|---|---|
-| `synthetic` *(default)* | Deterministic, statistically realistic dataset (~50k transactions) modeled after MLIT public aggregates. Used while MLIT API key approval is pending. |
-| `mlit_api` | Live calls to the MLIT Reinfolib API (`XIT001` endpoint). Requires a free subscription key — see `utils/data_loader.py`. |
+| Backend                 | Description                                                                                                                                           |
+| ----------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `synthetic` _(default)_ | Deterministic, statistically realistic dataset (~50k transactions) modeled after MLIT public aggregates. Used while MLIT API key approval is pending. |
+| `mlit_api`              | Live calls to the MLIT Reinfolib API (`XIT001` endpoint). Requires a free subscription key — see `utils/data_loader.py`.                              |
 
 Switching backends is a one-line change; the DataFrame schema is shared.
 
@@ -84,6 +84,7 @@ tokyo-real-estate-explorer/
 ## Author
 
 **Santiago Martinez** — Data Analyst based in Tokyo
+
 - Portfolio: https://santimuru.github.io
 - LinkedIn: https://www.linkedin.com/in/santiago-martinez-pezzatti-4241a3165/
 - GitHub: https://github.com/santimuru
