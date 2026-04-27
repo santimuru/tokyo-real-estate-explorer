@@ -15,9 +15,15 @@ Swapping backends is a one-line change in app.py.
 """
 from __future__ import annotations
 
+import gzip
+import json
 import os
+import re
+import time
+
 import numpy as np
 import pandas as pd
+import requests
 
 from .ward_data import (
     TOKYO_WARDS,
@@ -227,23 +233,155 @@ def generate_synthetic_data(n: int = N_TRANSACTIONS, seed: int = RANDOM_SEED) ->
 
 
 # ──────────────────────────────────────────────────────────────────
-# MLIT API BACKEND (stub — activate after API key arrives)
+# MLIT API BACKEND
 # ──────────────────────────────────────────────────────────────────
+
+_MLIT_URL = "https://www.reinfolib.mlit.go.jp/ex-api/external/XIT001"
+_TOKYO_AREA = "13"
+
+# Tokyo 23-ward JIS municipality codes → English ward name
+_MUNICIPALITY_TO_WARD: dict[str, str] = {
+    "13101": "Chiyoda",  "13102": "Chuo",      "13103": "Minato",
+    "13104": "Shinjuku", "13105": "Bunkyo",    "13106": "Taito",
+    "13107": "Sumida",   "13108": "Koto",      "13109": "Shinagawa",
+    "13110": "Meguro",   "13111": "Ota",       "13112": "Setagaya",
+    "13113": "Shibuya",  "13114": "Nakano",    "13115": "Suginami",
+    "13116": "Toshima",  "13117": "Kita",      "13118": "Arakawa",
+    "13119": "Itabashi", "13120": "Nerima",    "13121": "Adachi",
+    "13122": "Katsushika", "13123": "Edogawa",
+}
+
+# MLIT "Type" field (English, language=en) → our property_type
+_TYPE_MAP: dict[str, str] = {
+    "Pre-owned Condominiums, etc.":       "Used Apartment",
+    "Pre-owned Detached House":           "Used House",
+    "Newly Built Detached House":         "New House",
+    "Residential Land(Land)":             "Land Only",
+    "Residential Land(Land and Building)": "Used House",
+    # Japanese fallbacks (if language param is ignored)
+    "中古マンション等": "Used Apartment",
+    "中古戸建":         "Used House",
+    "新築戸建":         "New House",
+    "宅地(土地)":      "Land Only",
+    "宅地(土地と建物)": "Used House",
+}
+
+# Japanese era base years for BuildingYear parsing
+_ERA_BASE = {"明治": 1868, "大正": 1912, "昭和": 1926, "平成": 1989, "令和": 2019}
+
+
+def _parse_year_built(raw: str | None) -> int | None:
+    if not raw or raw in ("-", "戦前", "Pre-War"):
+        return None
+    m = re.match(r"(\d{4})年?", raw)
+    if m:
+        return int(m.group(1))
+    for era, base in _ERA_BASE.items():
+        m = re.match(rf"{era}(\d+)年?", raw)
+        if m:
+            return base + int(m.group(1)) - 1
+    return None
+
+
+def _parse_period(raw: str | None, fallback_year: int, fallback_q: int) -> tuple[int, int]:
+    if raw:
+        m = re.match(r"(\d{4})年第(\d)四半期", raw)
+        if m:
+            return int(m.group(1)), int(m.group(2))
+        m = re.match(r"(\d{4})-Q(\d)", raw)
+        if m:
+            return int(m.group(1)), int(m.group(2))
+    return fallback_year, fallback_q
+
+
+def _fetch_quarter(api_key: str, year: int, quarter: int) -> list[dict]:
+    headers = {"Ocp-Apim-Subscription-Key": api_key}
+    params = {"year": str(year), "quarter": str(quarter), "area": _TOKYO_AREA, "language": "en"}
+    resp = requests.get(_MLIT_URL, headers=headers, params=params, timeout=30)
+    resp.raise_for_status()
+    try:
+        data = resp.json()
+    except Exception:
+        data = json.loads(gzip.decompress(resp.content))
+    return data.get("data", [])
+
 
 def load_from_mlit_api(api_key: str) -> pd.DataFrame:
     """
-    Fetch real transaction data from MLIT Real Estate Information Library.
-
-    Endpoint: https://www.reinfolib.mlit.go.jp/ex-api/external/XIT001
-    Header: Ocp-Apim-Subscription-Key: <api_key>
-
-    TODO: implement once the user's API key arrives. The returned DataFrame
-    must match the schema produced by generate_synthetic_data().
+    Fetch real transaction data from MLIT Real Estate Information Library (XIT001).
+    Covers 2020-2024 across all quarters for Tokyo prefecture (area=13).
+    Returns a DataFrame matching the schema of generate_synthetic_data().
     """
-    raise NotImplementedError(
-        "MLIT API backend not implemented yet — waiting for subscription key. "
-        "Use DATA_SOURCE='synthetic' for now."
-    )
+    rows: list[dict] = []
+
+    for year in range(START_YEAR, END_YEAR + 1):
+        for quarter in range(1, 5):
+            try:
+                records = _fetch_quarter(api_key, year, quarter)
+            except Exception as exc:
+                print(f"[MLIT] Warning: {year}-Q{quarter} failed — {exc}")
+                records = []
+
+            for rec in records:
+                ward = _MUNICIPALITY_TO_WARD.get(str(rec.get("MunicipalityCode", "")))
+                if ward is None:
+                    continue
+
+                ptype = _TYPE_MAP.get(rec.get("Type", ""))
+                if ptype is None:
+                    continue
+
+                try:
+                    area_m2 = float(rec.get("Area") or rec.get("TotalFloorArea") or 0)
+                except (TypeError, ValueError):
+                    area_m2 = 0.0
+                if area_m2 <= 0:
+                    continue
+
+                try:
+                    trade_price = float(rec.get("TradePrice") or 0)
+                except (TypeError, ValueError):
+                    trade_price = 0.0
+                if trade_price <= 0:
+                    continue
+
+                try:
+                    price_per_m2 = float(rec.get("UnitPrice") or 0)
+                except (TypeError, ValueError):
+                    price_per_m2 = 0.0
+                if price_per_m2 <= 0:
+                    price_per_m2 = trade_price / area_m2
+
+                tx_year, tx_quarter = _parse_period(rec.get("Period"), year, quarter)
+                year_built = _parse_year_built(rec.get("BuildingYear"))
+                layout = rec.get("FloorPlan") or "-"
+
+                winfo = TOKYO_WARDS[ward]
+                rows.append({
+                    "ward":             ward,
+                    "ward_ja":          winfo["ja"],
+                    "property_type":    ptype,
+                    "tx_year":          tx_year,
+                    "tx_quarter":       tx_quarter,
+                    "tx_period":        f"{tx_year}-Q{tx_quarter}",
+                    "area_m2":          round(area_m2, 1),
+                    "layout":           layout,
+                    "year_built":       year_built,
+                    "building_age":     (tx_year - year_built) if year_built else None,
+                    "nearest_station":  None,
+                    "station_minutes":  None,
+                    "trade_price_jpy":  int(trade_price),
+                    "price_per_m2_jpy": int(price_per_m2),
+                    "lat":              winfo["lat"],
+                    "lon":              winfo["lon"],
+                })
+
+            time.sleep(0.4)  # respect MLIT rate limits
+
+    if not rows:
+        raise RuntimeError("MLIT API returned no usable records for Tokyo 23 wards (2020-2024).")
+
+    return pd.DataFrame(rows)
 
 
 # ──────────────────────────────────────────────────────────────────

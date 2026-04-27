@@ -94,8 +94,9 @@ def estimate_price(
     score = np.zeros(len(comps))
     # Area proximity
     score += np.abs(comps["area_m2"] - area_m2) / max(area_m2, 1)
-    # Station distance proximity
-    score += np.abs(comps["station_minutes"] - station_minutes) / 10
+    # Station distance proximity (skip if data has no station info)
+    if comps["station_minutes"].notna().any():
+        score += (comps["station_minutes"].fillna(station_minutes) - station_minutes).abs() / 10
     # Age proximity (if applicable)
     if building_age is not None and "building_age" in comps.columns:
         age_diff = (comps["building_age"] - building_age).abs() / 10
