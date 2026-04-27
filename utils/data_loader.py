@@ -238,6 +238,12 @@ def generate_synthetic_data(n: int = N_TRANSACTIONS, seed: int = RANDOM_SEED) ->
             "price_per_m2_jpy": int(price_per_m2),
             "lat": winfo["lat"],
             "lon": winfo["lon"],
+            # Extended fields (None in synthetic — populated from MLIT API)
+            "district":      None,
+            "structure":     None,
+            "direction":     None,
+            "renovation":    None,
+            "city_planning": None,
         })
 
     df = pd.DataFrame(rows)
@@ -280,6 +286,28 @@ _TYPE_MAP: dict[str, str] = {
 
 # Japanese era base years for BuildingYear parsing
 _ERA_BASE = {"明治": 1868, "大正": 1912, "昭和": 1926, "平成": 1989, "令和": 2019}
+
+# MLIT "Structure" field → normalised label
+_STRUCTURE_MAP: dict[str, str] = {
+    "Reinforced Concrete":        "RC",
+    "Steel Reinforced Concrete":  "SRC",
+    "Steel Frame":                "Steel",
+    "Steel":                      "Steel",
+    "Light Steel Frame":          "Light Steel",
+    "Light Steel":                "Light Steel",
+    "Wooden":                     "Wood",
+    "Wood":                       "Wood",
+    "Block":                      "Other",
+    "Other":                      "Other",
+    # Japanese fallbacks (if language param is ignored)
+    "鉄筋コンクリート造":          "RC",
+    "鉄骨鉄筋コンクリート造":       "SRC",
+    "鉄骨造":                     "Steel",
+    "軽量鉄骨造":                  "Light Steel",
+    "木造":                       "Wood",
+    "ブロック造":                  "Other",
+    "その他":                     "Other",
+}
 
 MAJOR_CITIES: dict[str, dict] = {
     "Tokyo":    {"code": "13", "name_ja": "東京都",  "lat": 35.69, "lon": 139.69},
@@ -383,6 +411,7 @@ def load_from_mlit_api(api_key: str) -> pd.DataFrame:
                 layout = rec.get("FloorPlan") or "-"
 
                 winfo = TOKYO_WARDS[ward]
+                raw_struct = str(rec.get("Structure") or "").strip()
                 rows.append({
                     "ward":             ward,
                     "ward_ja":          winfo["ja"],
@@ -400,6 +429,11 @@ def load_from_mlit_api(api_key: str) -> pd.DataFrame:
                     "price_per_m2_jpy": int(price_per_m2),
                     "lat":              winfo["lat"],
                     "lon":              winfo["lon"],
+                    "district":         str(rec.get("DistrictName") or "").strip() or None,
+                    "structure":        _STRUCTURE_MAP.get(raw_struct) if raw_struct else None,
+                    "direction":        str(rec.get("Direction") or "").strip() or None,
+                    "renovation":       str(rec.get("Renovation") or "").strip() or None,
+                    "city_planning":    str(rec.get("CityPlanning") or "").strip() or None,
                 })
 
             time.sleep(0.4)  # respect MLIT rate limits

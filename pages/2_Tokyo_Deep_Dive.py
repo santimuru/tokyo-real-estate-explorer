@@ -20,10 +20,15 @@ from utils.analytics import (
     price_trend,
     layout_distribution,
     estimate_price,
+    neighborhood_summary,
+    investment_signals,
+    structure_premium,
+    direction_premium,
+    renovation_premium,
     format_jpy,
     format_ppm2,
 )
-from utils.styles import inject_css
+from utils.styles import inject_css, kpi_card
 
 st.set_page_config(
     page_title="Tokyo Deep Dive · Japan RE",
@@ -152,11 +157,12 @@ st.markdown("<div style='margin-bottom:1.5rem'></div>", unsafe_allow_html=True)
 # ────────────────────────────────────────────────────────────────
 # Tabs
 # ────────────────────────────────────────────────────────────────
-tab1, tab2, tab3, tab4 = st.tabs([
+tab1, tab2, tab3, tab4, tab5 = st.tabs([
     "🗺️ Map & Rankings",
     "📈 Market Trends",
     "🏙️ Ward Analysis",
     "💴 Price Estimator",
+    "🧠 Market Intelligence",
 ])
 
 
@@ -497,15 +503,18 @@ with tab3:
 # ═══════════════════════════════════════════════════════════════
 with tab4:
     st.markdown("### Property price estimator")
+    _has_extended = (
+        "structure" in df_all.columns and df_all["structure"].notna().any()
+    )
     st.markdown(f"""
     <div class="insight-box">
-        Enter a property's characteristics to get a price estimate derived from real
-        comparable transactions. The model uses <strong>k-nearest neighbors</strong>
-        matching on ward, floor area, and building age to find the most similar deals in
-        the dataset ({len(df_all):,} transactions) and returns <strong>P10 / P50 / P90</strong>
-        price ranges.
+        Enter a property's characteristics to get a price estimate derived from
+        comparable transactions using <strong>k-nearest neighbors</strong> matching on
+        ward, floor area, building age{", structure, orientation, and renovation" if _has_extended else ""}.
+        Returns <strong>P10 / P50 / P90</strong> price ranges from
+        {result_n:,} comparable deals in the dataset.
     </div>
-    """, unsafe_allow_html=True)
+    """.replace("result_n", str(len(df_all))), unsafe_allow_html=True)
 
     ec1, ec2 = st.columns(2)
     with ec1:
@@ -525,6 +534,21 @@ with tab4:
             "Walk to nearest station (min)", min_value=1, max_value=30, value=8, step=1,
         )
 
+    _structure_opts = ["Any", "RC", "SRC", "Steel", "Light Steel", "Wood"]
+    _direction_opts = ["Any", "South", "Southeast", "Southwest", "East", "West", "North", "Northeast", "Northwest"]
+    with st.expander(
+        "🔬 Advanced property features" + (" — improves estimate accuracy" if _has_extended else " — requires live MLIT data"),
+        expanded=_has_extended,
+    ):
+        adv1, adv2, adv3 = st.columns(3)
+        with adv1:
+            est_structure = st.selectbox("Structure type", _structure_opts)
+        with adv2:
+            est_direction = st.selectbox("Facing direction", _direction_opts)
+        with adv3:
+            st.markdown("<div style='height:1.7rem'></div>", unsafe_allow_html=True)
+            est_renovated = st.checkbox("Recently renovated")
+
     if st.button("Estimate →", type="primary"):
         result = estimate_price(
             df_all,
@@ -533,6 +557,9 @@ with tab4:
             year_built=int(est_year),
             station_minutes=int(est_minutes),
             property_type=est_type,
+            structure=est_structure if est_structure != "Any" else None,
+            direction=est_direction if est_direction != "Any" else None,
+            renovated=est_renovated,
         )
 
         st.markdown("---")
@@ -578,6 +605,286 @@ with tab4:
             xaxis_tickformat=",.0f",
         )
         st.plotly_chart(fig_range, use_container_width=True)
+
+
+# ═══════════════════════════════════════════════════════════════
+# TAB 5 — MARKET INTELLIGENCE
+# ═══════════════════════════════════════════════════════════════
+with tab5:
+
+    # ── Investment Signal Dashboard ──────────────────────────────
+    st.markdown("### Investment Signal Dashboard")
+    st.markdown(f"""
+    <div class="insight-box">
+        Each ward is scored on two axes: <strong>price momentum</strong>
+        ({sorted(df["tx_year"].dropna().unique())[-2] if len(df["tx_year"].dropna().unique()) >= 2 else "prior year"} → {int(df["tx_year"].max())} YoY ¥/m² change)
+        and <strong>relative affordability</strong> vs the Tokyo median.
+        The <strong>Value Score</strong> (0–100) weights momentum 60% and affordability 40%
+        — a rising ward that is still below market average scores highest.
+    </div>
+    """, unsafe_allow_html=True)
+
+    sig_df = investment_signals(df)
+
+    if not sig_df.empty:
+        sig_col, top_col = st.columns([3, 1])
+
+        with sig_col:
+            fig_sig = go.Figure()
+            # Quadrant reference lines
+            city_med_ppm2 = float(df["price_per_m2_jpy"].median())
+            avg_momentum  = float(sig_df["momentum_pct"].mean())
+            fig_sig.add_vline(x=city_med_ppm2,  line_dash="dot", line_color="rgba(150,150,150,0.4)", line_width=1)
+            fig_sig.add_hline(y=avg_momentum,    line_dash="dot", line_color="rgba(150,150,150,0.4)", line_width=1)
+
+            fig_sig.add_trace(go.Scatter(
+                x=sig_df["median_ppm2"],
+                y=sig_df["momentum_pct"],
+                mode="markers+text",
+                text=sig_df["ward"],
+                textposition="top center",
+                textfont=dict(size=9),
+                marker=dict(
+                    size=np.sqrt(sig_df["n_transactions"]).clip(8, 28),
+                    color=sig_df["value_score"],
+                    colorscale=[[0, "#e74c3c"], [0.4, "#f39c12"], [0.7, "#27ae60"], [1, "#177e89"]],
+                    showscale=True,
+                    colorbar=dict(title="Value Score", thickness=12, len=0.7),
+                    line=dict(color="white", width=1),
+                ),
+                customdata=np.stack([sig_df["signal"], sig_df["value_score"], sig_df["volume_trend_pct"]], axis=1),
+                hovertemplate=(
+                    "<b>%{text}</b><br>"
+                    "Signal: %{customdata[0]}<br>"
+                    "Value Score: %{customdata[1]:.0f}<br>"
+                    "Momentum: %{y:+.1f}%<br>"
+                    "Median ¥/m²: ¥%{x:,.0f}<br>"
+                    "Volume change: %{customdata[2]:+.0f}%<extra></extra>"
+                ),
+            ))
+
+            # Quadrant labels
+            x_range = [sig_df["median_ppm2"].min() * 0.92, sig_df["median_ppm2"].max() * 1.05]
+            y_range = [sig_df["momentum_pct"].min() - 1.5, sig_df["momentum_pct"].max() + 2.5]
+            for label, x_frac, y_frac, color in [
+                ("Rising Stars", 0.08, 0.92, "rgba(23,126,137,0.15)"),
+                ("Hot Market",   0.85, 0.92, "rgba(243,156,18,0.12)"),
+                ("Undervalued",  0.08, 0.08, "rgba(52,152,219,0.12)"),
+                ("Cooling",      0.85, 0.08, "rgba(231,76,60,0.10)"),
+            ]:
+                fig_sig.add_annotation(
+                    x=x_range[0] + (x_range[1]-x_range[0]) * x_frac,
+                    y=y_range[0] + (y_range[1]-y_range[0]) * y_frac,
+                    text=label, showarrow=False,
+                    font=dict(size=10, color="rgba(100,100,100,0.6)"),
+                )
+
+            fig_sig.update_layout(
+                height=480,
+                plot_bgcolor="white",
+                margin=dict(l=10, r=10, t=20, b=40),
+                xaxis=dict(title="Median ¥/m²", gridcolor="#eee", tickformat=",.0f"),
+                yaxis=dict(title="YoY Momentum (%)", gridcolor="#eee", ticksuffix="%"),
+                showlegend=False,
+            )
+            st.plotly_chart(fig_sig, use_container_width=True)
+
+        with top_col:
+            st.markdown("**Top value plays**")
+            for _, row in sig_df.head(5).iterrows():
+                kpi_card(
+                    row["ward"],
+                    row["signal"],
+                    f"Score {row['value_score']:.0f} · {row['momentum_pct']:+.1f}% MoM",
+                )
+            st.markdown("<div style='height:0.5rem'></div>", unsafe_allow_html=True)
+            st.markdown("**Most bearish**")
+            bearish = sig_df[sig_df["momentum_pct"] < 0].sort_values("momentum_pct").head(3)
+            if not bearish.empty:
+                for _, row in bearish.iterrows():
+                    kpi_card(row["ward"], f"{row['momentum_pct']:+.1f}%", "YoY momentum")
+    else:
+        st.info("Investment signals require at least 2 years of data.")
+
+    st.markdown("---")
+
+    # ── Neighborhood Intelligence ────────────────────────────────
+    st.markdown("### Neighborhood Intelligence")
+
+    has_district = (
+        "district" in df_all.columns
+        and df_all["district"].notna().any()
+        and (df_all["district"] != "").any()
+    )
+
+    if has_district:
+        st.caption("District-level breakdown within each ward — powered by MLIT DistrictName field.")
+        ni_ward = st.selectbox(
+            "Select ward for neighborhood drill-down",
+            options=sorted(df["ward"].unique()),
+            format_func=lambda w: f"{w}  ·  {TOKYO_WARDS[w]['ja']}",
+            key="ni_ward",
+        )
+        nb_df = neighborhood_summary(df, ward=ni_ward)
+        if not nb_df.empty:
+            nb_col1, nb_col2 = st.columns([3, 1])
+            with nb_col1:
+                top_nb = nb_df.head(20)
+                fig_nb = px.bar(
+                    top_nb.sort_values("median_ppm2"),
+                    x="median_ppm2", y="district",
+                    orientation="h",
+                    color="median_ppm2",
+                    color_continuous_scale=["#e8f8fa", "#177e89", "#0d2b2e"],
+                    labels={"median_ppm2": "Median ¥/m²", "district": ""},
+                    text=top_nb.sort_values("median_ppm2")["median_ppm2"].apply(
+                        lambda x: f"¥{x/10000:.0f}万"
+                    ),
+                )
+                fig_nb.update_traces(textposition="outside")
+                fig_nb.update_layout(
+                    height=max(350, len(top_nb) * 24),
+                    plot_bgcolor="white",
+                    margin=dict(l=10, r=10, t=10, b=10),
+                    coloraxis_showscale=False,
+                )
+                fig_nb.update_xaxes(gridcolor="#eee", tickformat=",.0f")
+                st.plotly_chart(fig_nb, use_container_width=True)
+            with nb_col2:
+                if len(nb_df) >= 2:
+                    top_d   = nb_df.iloc[0]
+                    cheap_d = nb_df.iloc[-1]
+                    gap = top_d["median_ppm2"] / cheap_d["median_ppm2"]
+                    st.markdown(f"""
+                    <div class="insight-box">
+                        Within <strong>{ni_ward}</strong>, prices vary
+                        <strong>{gap:.1f}×</strong> from district to district.<br><br>
+                        🏆 Most expensive:<br>
+                        <strong>{top_d['district']}</strong><br>
+                        ¥{top_d['median_ppm2']/10000:.0f}万/m²<br><br>
+                        💡 Best value:<br>
+                        <strong>{cheap_d['district']}</strong><br>
+                        ¥{cheap_d['median_ppm2']/10000:.0f}万/m²
+                    </div>
+                    """, unsafe_allow_html=True)
+        else:
+            st.info(f"Not enough district-level data for {ni_ward} in the current filter range.")
+    else:
+        st.markdown("""
+        <div class="insight-box">
+            🔌 <strong>Connect to the live MLIT API</strong> to unlock neighborhood intelligence.<br>
+            The <code>DistrictName</code> field reveals sub-ward price variation —
+            e.g. Roppongi vs Azabu-Juban vs Shibaura within Minato Ward —
+            up to <strong>3–5× price gaps</strong> within a single ward.
+        </div>
+        """, unsafe_allow_html=True)
+
+    st.markdown("---")
+
+    # ── Property DNA ─────────────────────────────────────────────
+    st.markdown("### Property DNA")
+    st.caption("How structure type, orientation, and renovation history affect price per m².")
+
+    has_dna = (
+        "structure" in df_all.columns and df_all["structure"].notna().any()
+    )
+
+    if not has_dna:
+        st.markdown("""
+        <div class="insight-box">
+            🔌 <strong>Connect to the live MLIT API</strong> to unlock Property DNA analysis.<br>
+            The API provides building <strong>structure</strong> (RC / SRC / Steel / Wood),
+            <strong>facing direction</strong> (south-facing apartments command a premium in Japan),
+            and <strong>renovation status</strong> — enabling price decomposition by physical property traits.
+        </div>
+        """, unsafe_allow_html=True)
+    else:
+        # Structure premium
+        struct_df = structure_premium(df)
+        if not struct_df.empty:
+            st.markdown("**Price premium by building structure**")
+            fig_struct = px.bar(
+                struct_df.sort_values("premium_pct"),
+                x="premium_pct", y="structure",
+                orientation="h",
+                color="premium_pct",
+                color_continuous_scale=["#e74c3c", "#f5f5f5", "#177e89"],
+                color_continuous_midpoint=0,
+                text=struct_df.sort_values("premium_pct")["premium_pct"].apply(
+                    lambda x: f"{x:+.1f}%"
+                ),
+                labels={"premium_pct": "Premium vs city median (%)", "structure": ""},
+                hover_data={"median_ppm2": True, "n_transactions": True, "median_age": True},
+            )
+            fig_struct.update_traces(textposition="outside")
+            fig_struct.update_layout(
+                height=280, plot_bgcolor="white",
+                margin=dict(l=10, r=10, t=10, b=10),
+                coloraxis_showscale=False,
+            )
+            fig_struct.add_vline(x=0, line_dash="dot", line_color="#bbb", line_width=1)
+            fig_struct.update_xaxes(gridcolor="#eee", ticksuffix="%")
+            st.plotly_chart(fig_struct, use_container_width=True)
+
+        dna_c1, dna_c2 = st.columns(2)
+
+        with dna_c1:
+            dir_df = direction_premium(df)
+            if not dir_df.empty:
+                st.markdown("**Price premium by facing direction**")
+                fig_dir = px.bar(
+                    dir_df.sort_values("premium_pct"),
+                    x="premium_pct", y="direction",
+                    orientation="h",
+                    color="premium_pct",
+                    color_continuous_scale=["#e74c3c", "#f5f5f5", "#177e89"],
+                    color_continuous_midpoint=0,
+                    text=dir_df.sort_values("premium_pct")["premium_pct"].apply(
+                        lambda x: f"{x:+.1f}%"
+                    ),
+                    labels={"premium_pct": "Premium (%)", "direction": ""},
+                )
+                fig_dir.update_traces(textposition="outside")
+                fig_dir.update_layout(
+                    height=320, plot_bgcolor="white",
+                    margin=dict(l=10, r=10, t=10, b=10),
+                    coloraxis_showscale=False,
+                )
+                fig_dir.add_vline(x=0, line_dash="dot", line_color="#bbb", line_width=1)
+                fig_dir.update_xaxes(gridcolor="#eee", ticksuffix="%")
+                st.plotly_chart(fig_dir, use_container_width=True)
+            else:
+                st.info("Not enough direction data in current selection.")
+
+        with dna_c2:
+            renov = renovation_premium(df)
+            if renov:
+                st.markdown("**Renovation premium**")
+                renov_vals = [renov["median_ppm2_not_renovated"], renov["median_ppm2_renovated"]]
+                renov_labels = [
+                    f"Not renovated\n({renov['n_not_renovated']:,} txs)",
+                    f"Renovated\n({renov['n_renovated']:,} txs)",
+                ]
+                fig_renov = go.Figure(go.Bar(
+                    x=renov_labels,
+                    y=renov_vals,
+                    marker_color=["#94A3B8", "#177e89"],
+                    text=[f"¥{v/10000:.0f}万/m²" for v in renov_vals],
+                    textposition="outside",
+                ))
+                fig_renov.update_layout(
+                    height=320, plot_bgcolor="white",
+                    margin=dict(l=10, r=10, t=50, b=10),
+                    yaxis=dict(gridcolor="#eee", tickformat=",.0f"),
+                    title=dict(
+                        text=f"Renovation adds <b>{renov['premium_pct']:+.1f}%</b> to price/m²",
+                        font=dict(size=13), x=0.5,
+                    ),
+                    showlegend=False,
+                )
+                st.plotly_chart(fig_renov, use_container_width=True)
+            else:
+                st.info("Not enough renovation data in current selection.")
 
 
 # ────────────────────────────────────────────────────────────────
