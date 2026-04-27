@@ -38,13 +38,18 @@ from .ward_data import (
 RANDOM_SEED = 42
 N_TRANSACTIONS = 50_000
 START_YEAR = 2020
-# MLIT publishes data ~2 quarters behind; cap at last full quarter
-def _current_end_year() -> int:
-    now = datetime.now()
-    # If we're in Q1, last full year's Q4 is the safest cap
-    return now.year if now.month > 3 else now.year - 1
+END_YEAR = 2024  # synthetic backend fixed range
 
-END_YEAR = _current_end_year()
+
+def _last_available_period() -> tuple[int, int]:
+    """Last quarter published by MLIT (~2 quarter lag from today)."""
+    now = datetime.now()
+    current_q = (now.month - 1) // 3 + 1
+    year, quarter = now.year, current_q - 2
+    if quarter <= 0:
+        quarter += 4
+        year -= 1
+    return year, quarter
 
 
 # ──────────────────────────────────────────────────────────────────
@@ -316,23 +321,15 @@ def _fetch_quarter(api_key: str, year: int, quarter: int) -> list[dict]:
 def load_from_mlit_api(api_key: str) -> pd.DataFrame:
     """
     Fetch real transaction data from MLIT Real Estate Information Library (XIT001).
-    Covers 2020-2024 across all quarters for Tokyo prefecture (area=13).
+    Covers START_YEAR up to the last published MLIT quarter (~2 quarter lag).
     Returns a DataFrame matching the schema of generate_synthetic_data().
     """
     rows: list[dict] = []
+    last_year, last_quarter = _last_available_period()
 
-    # MLIT publishes ~2 quarters behind; don't request quarters that don't exist yet
-    now = datetime.now()
-    last_available_year = now.year
-    last_available_quarter = max(1, ((now.month - 1) // 3) - 1) or 4
-    if last_available_quarter == 4 and now.month <= 3:
-        last_available_year -= 1
-
-    for year in range(START_YEAR, END_YEAR + 1):
+    for year in range(START_YEAR, last_year + 1):
         for quarter in range(1, 5):
-            if year == last_available_year and quarter > last_available_quarter:
-                continue
-            if year > last_available_year:
+            if year == last_year and quarter > last_quarter:
                 continue
             try:
                 records = _fetch_quarter(api_key, year, quarter)
