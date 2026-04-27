@@ -20,6 +20,7 @@ import json
 import os
 import re
 import time
+from datetime import datetime
 
 import numpy as np
 import pandas as pd
@@ -37,7 +38,13 @@ from .ward_data import (
 RANDOM_SEED = 42
 N_TRANSACTIONS = 50_000
 START_YEAR = 2020
-END_YEAR = 2024  # inclusive
+# MLIT publishes data ~2 quarters behind; cap at last full quarter
+def _current_end_year() -> int:
+    now = datetime.now()
+    # If we're in Q1, last full year's Q4 is the safest cap
+    return now.year if now.month > 3 else now.year - 1
+
+END_YEAR = _current_end_year()
 
 
 # ──────────────────────────────────────────────────────────────────
@@ -314,8 +321,19 @@ def load_from_mlit_api(api_key: str) -> pd.DataFrame:
     """
     rows: list[dict] = []
 
+    # MLIT publishes ~2 quarters behind; don't request quarters that don't exist yet
+    now = datetime.now()
+    last_available_year = now.year
+    last_available_quarter = max(1, ((now.month - 1) // 3) - 1) or 4
+    if last_available_quarter == 4 and now.month <= 3:
+        last_available_year -= 1
+
     for year in range(START_YEAR, END_YEAR + 1):
         for quarter in range(1, 5):
+            if year == last_available_year and quarter > last_available_quarter:
+                continue
+            if year > last_available_year:
+                continue
             try:
                 records = _fetch_quarter(api_key, year, quarter)
             except Exception as exc:
