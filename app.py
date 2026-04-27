@@ -58,7 +58,7 @@ st.markdown("""
 # ────────────────────────────────────────────────────────────────
 # Data loading (cached)
 # ────────────────────────────────────────────────────────────────
-@st.cache_data(show_spinner="Loading Tokyo transactions…")
+@st.cache_data(show_spinner="Loading Tokyo transactions…", ttl=3600)
 def _load() -> pd.DataFrame:
     return load_data()
 
