@@ -281,6 +281,17 @@ _TYPE_MAP: dict[str, str] = {
 # Japanese era base years for BuildingYear parsing
 _ERA_BASE = {"明治": 1868, "大正": 1912, "昭和": 1926, "平成": 1989, "令和": 2019}
 
+MAJOR_CITIES: dict[str, dict] = {
+    "Tokyo":    {"code": "13", "name_ja": "東京都",  "lat": 35.69, "lon": 139.69},
+    "Osaka":    {"code": "27", "name_ja": "大阪府",  "lat": 34.69, "lon": 135.50},
+    "Yokohama": {"code": "14", "name_ja": "神奈川県", "lat": 35.45, "lon": 139.64},
+    "Nagoya":   {"code": "23", "name_ja": "愛知県",  "lat": 35.18, "lon": 136.91},
+    "Sapporo":  {"code": "01", "name_ja": "北海道",  "lat": 43.06, "lon": 141.35},
+    "Fukuoka":  {"code": "40", "name_ja": "福岡県",  "lat": 33.61, "lon": 130.42},
+    "Kyoto":    {"code": "26", "name_ja": "京都府",  "lat": 35.02, "lon": 135.76},
+    "Kobe":     {"code": "28", "name_ja": "兵庫県",  "lat": 34.69, "lon": 135.18},
+}
+
 
 def _parse_year_built(raw: str | None) -> int | None:
     if not raw or raw in ("-", "戦前", "Pre-War"):
@@ -306,9 +317,9 @@ def _parse_period(raw: str | None, fallback_year: int, fallback_q: int) -> tuple
     return fallback_year, fallback_q
 
 
-def _fetch_quarter(api_key: str, year: int, quarter: int) -> list[dict]:
+def _fetch_quarter(api_key: str, year: int, quarter: int, pref_code: str = _TOKYO_AREA) -> list[dict]:
     headers = {"Ocp-Apim-Subscription-Key": api_key}
-    params = {"year": str(year), "quarter": str(quarter), "area": _TOKYO_AREA, "language": "en"}
+    params = {"year": str(year), "quarter": str(quarter), "area": pref_code, "language": "en"}
     resp = requests.get(_MLIT_URL, headers=headers, params=params, timeout=30)
     resp.raise_for_status()
     try:
@@ -396,6 +407,73 @@ def load_from_mlit_api(api_key: str) -> pd.DataFrame:
     if not rows:
         raise RuntimeError("MLIT API returned no usable records for Tokyo 23 wards (2020-2024).")
 
+    return pd.DataFrame(rows)
+
+
+def load_city_data(pref_code: str, api_key: str) -> pd.DataFrame:
+    """
+    Fetch transaction data for any Japanese prefecture from MLIT XIT001.
+    Returns a city (municipality) level DataFrame — not ward-level.
+    Schema: prefecture_code, city, property_type, tx_year, tx_quarter, tx_period,
+            area_m2, layout, year_built, building_age, trade_price_jpy, price_per_m2_jpy
+    """
+    rows: list[dict] = []
+    last_year, last_quarter = _last_available_period()
+
+    for year in range(START_YEAR, last_year + 1):
+        for quarter in range(1, 5):
+            if year == last_year and quarter > last_quarter:
+                continue
+            try:
+                records = _fetch_quarter(api_key, year, quarter, pref_code=pref_code)
+            except Exception as exc:
+                print(f"[MLIT] Warning: {pref_code} {year}-Q{quarter} failed — {exc}")
+                records = []
+
+            for rec in records:
+                ptype = _TYPE_MAP.get(rec.get("Type", ""))
+                if ptype is None:
+                    continue
+                try:
+                    area_m2 = float(rec.get("Area") or rec.get("TotalFloorArea") or 0)
+                except (TypeError, ValueError):
+                    area_m2 = 0.0
+                if area_m2 <= 0:
+                    continue
+                try:
+                    trade_price = float(rec.get("TradePrice") or 0)
+                except (TypeError, ValueError):
+                    trade_price = 0.0
+                if trade_price <= 0:
+                    continue
+                try:
+                    price_per_m2 = float(rec.get("UnitPrice") or 0)
+                except (TypeError, ValueError):
+                    price_per_m2 = 0.0
+                if price_per_m2 <= 0:
+                    price_per_m2 = trade_price / area_m2
+
+                tx_year, tx_quarter_val = _parse_period(rec.get("Period"), year, quarter)
+                year_built = _parse_year_built(rec.get("BuildingYear"))
+
+                rows.append({
+                    "prefecture_code": pref_code,
+                    "city":            str(rec.get("Municipality") or rec.get("MunicipalityCode") or ""),
+                    "property_type":   ptype,
+                    "tx_year":         tx_year,
+                    "tx_quarter":      tx_quarter_val,
+                    "tx_period":       f"{tx_year}-Q{tx_quarter_val}",
+                    "area_m2":         round(area_m2, 1),
+                    "layout":          rec.get("FloorPlan") or "-",
+                    "year_built":      year_built,
+                    "building_age":    (tx_year - year_built) if year_built else None,
+                    "trade_price_jpy": int(trade_price),
+                    "price_per_m2_jpy": int(price_per_m2),
+                })
+            time.sleep(0.4)
+
+    if not rows:
+        raise RuntimeError(f"MLIT API returned no data for prefecture {pref_code}.")
     return pd.DataFrame(rows)
 
 
