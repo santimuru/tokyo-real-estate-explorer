@@ -3,12 +3,14 @@ Tokyo Deep Dive — ward-level analytics for Tokyo's 23 Special Wards.
 """
 from __future__ import annotations
 
+import json
 from datetime import datetime
+from pathlib import Path
+
 import numpy as np
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
-import pydeck as pdk
 import streamlit as st
 
 from utils.data_loader import load_data, data_source_label
@@ -128,55 +130,61 @@ tab1, tab2, tab3, tab4, tab5 = st.tabs([
 with tab1:
     section_title(
         "Price geography across Tokyo's 23 wards",
-        "Each bubble is a ward. Size = transaction volume. Color intensity = median ¥/m². "
-        "Hover for details. The geographic spread from central premium wards to outer affordable ones "
-        "can be 3–4× in a single city.",
+        "Each ward shaded by median ¥/m². The price gap from central premium wards "
+        "to outer affordable ones can be 3–4× in a single city.",
     )
 
     summary = ward_summary(df)
-    summary["lat"]     = summary["ward"].map(lambda w: TOKYO_WARDS[w]["lat"])
-    summary["lon"]     = summary["ward"].map(lambda w: TOKYO_WARDS[w]["lon"])
     summary["ward_ja"] = summary["ward"].map(lambda w: TOKYO_WARDS[w]["ja"])
     summary["ppm2_fmt"]  = summary["median_ppm2"].apply(lambda x: f"¥{x/10000:.0f}万/m²")
     summary["price_fmt"] = summary["median_price"].apply(
         lambda x: f"¥{x/1e8:.2f}億" if x >= 1e8 else f"¥{x/1e6:.0f}百万"
     )
 
+    @st.cache_data(show_spinner=False)
+    def _wards_geojson() -> dict:
+        path = Path(__file__).resolve().parent.parent / "data" / "tokyo23_wards.geojson"
+        with open(path, encoding="utf-8") as fh:
+            return json.load(fh)
+
     map_col, rank_col = st.columns([2, 1])
 
     with map_col:
-        max_n = summary["n_transactions"].max()
-        summary["radius"] = 400 + (summary["n_transactions"] / max_n) * 1400
-        min_p, max_p = summary["median_ppm2"].min(), summary["median_ppm2"].max()
-        def _color(p):
-            t = (p - min_p) / (max_p - min_p) if max_p > min_p else 0.5
-            return [int(59 + t * 29), int(130 - t * 100), int(246 - t * 180), 200]
-        summary["color"] = summary["median_ppm2"].apply(_color)
-
-        layer = pdk.Layer(
-            "ScatterplotLayer", data=summary,
-            get_position=["lon", "lat"], get_radius="radius",
-            get_fill_color="color", pickable=True, opacity=0.85,
-            stroked=True, get_line_color=[255, 255, 255, 120], line_width_min_pixels=1,
-        )
-        deck = pdk.Deck(
-            layers=[layer],
-            initial_view_state=pdk.ViewState(latitude=35.685, longitude=139.75, zoom=10.2, pitch=0),
-            map_style="dark" if get_theme() == "dark" else "light",
-            tooltip={
-                "html": (
-                    "<b>{ward}</b> ({ward_ja})<br/>"
-                    "Median ¥/m²: <b>{ppm2_fmt}</b><br/>"
-                    "Median price: <b>{price_fmt}</b><br/>"
-                    "Transactions: <b>{n_transactions}</b>"
-                ),
-                "style": {
-                    "backgroundColor": "#1E293B", "color": "white",
-                    "fontSize": "12px", "padding": "10px", "borderRadius": "6px",
-                },
+        wards_geo = _wards_geojson()
+        base_map, _, _ = plotly_base(560)
+        fig_map = px.choropleth_mapbox(
+            summary,
+            geojson=wards_geo,
+            locations="ward",
+            featureidkey="properties.ward_en",
+            color="median_ppm2",
+            color_continuous_scale=["#DBEAFE", "#3B82F6", "#1D4ED8"],
+            mapbox_style="carto-darkmatter" if get_theme() == "dark" else "carto-positron",
+            center={"lat": 35.685, "lon": 139.75},
+            zoom=9.6,
+            opacity=0.78,
+            hover_name="ward",
+            hover_data={
+                "ward":           False,
+                "ward_ja":        True,
+                "ppm2_fmt":       True,
+                "price_fmt":      True,
+                "n_transactions": ":,",
+                "median_ppm2":    False,
+            },
+            labels={
+                "ppm2_fmt":       "Median ¥/m²",
+                "price_fmt":      "Median price",
+                "n_transactions": "Transactions",
+                "ward_ja":        "Japanese name",
             },
         )
-        st.pydeck_chart(deck, use_container_width=True)
+        fig_map.update_layout(
+            **base_map,
+            coloraxis_colorbar=dict(title="¥/m²", tickformat=",.0f"),
+        )
+        st.plotly_chart(fig_map, use_container_width=True,
+                        config={"scrollZoom": False, "doubleClick": False, "displayModeBar": False})
 
     with rank_col:
         section_title("All 23 wards ranked")
@@ -188,7 +196,7 @@ with tab1:
         )
         rank = rank[["Ward", "¥/m²", "Median price", "n_transactions"]].rename(columns={"n_transactions": "Txs"})
         rank.index = range(1, len(rank) + 1)
-        st.dataframe(rank, use_container_width=True, height=500)
+        st.dataframe(rank, use_container_width=True, height=560)
 
     top_w, bot_w = summary.iloc[0], summary.iloc[-1]
     callout(
