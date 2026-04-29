@@ -31,7 +31,14 @@ page_header(
         "Prefecture-level price maps, demographic trends, and the akiya vacancy crisis "
         "across all 47 prefectures. Select a section below to explore."
     ),
-    badges=["47 Prefectures", "2015–2024"],
+    badges=["47 Prefectures", "2015–2024", "Curated Estimates"],
+)
+
+callout(
+    "ℹ️ <strong>Data note:</strong> Prefecture-level prices and akiya rates on this page are "
+    "<strong>curated estimates</strong> from MLIT aggregate reports, REINS data, and the Japan Housing &amp; Land Survey "
+    "(2013/2018/2023). Population figures from the Statistics Bureau census (2010, 2020). "
+    "For transaction-level live MLIT API data, see <em>City Comparison</em> and <em>Tokyo Deep Dive</em>."
 )
 
 # ── Sidebar — data note ────────────────────────────────────────────────────────
@@ -210,6 +217,9 @@ with tab_demo:
     fig_scatter.update_yaxes(gridcolor=grid, zeroline=True, zerolinecolor=zero, ticksuffix="%")
     fig_scatter.add_hline(y=0, line_dash="dot", line_color=zero)
     fig_scatter.add_vline(x=0, line_dash="dot", line_color=zero)
+    fig_scatter.update_traces(
+        hovertemplate="<b>%{hovertext}</b><br>Population change: %{x:.1f}%<br>Price growth: %{y:.0f}%<extra></extra>"
+    )
     st.plotly_chart(fig_scatter, use_container_width=True, config={"scrollZoom": False, "doubleClick": False, "displayModeBar": False})
 
     most_surprising = df[~df["is_major_metro"]].nlargest(3, "price_change_pct")[["name_en", "price_change_pct"]]
@@ -224,16 +234,20 @@ with tab_demo:
 
     section_title("Top 10 by price growth (2015–2024)")
     top_growth = df.nlargest(10, "price_change_pct")[["name_en", "price_change_pct", "is_major_metro"]].copy()
+    top_growth_sorted = top_growth.sort_values("price_change_pct")
     base2, grid2, _ = plotly_base(320)
     fig_bar = px.bar(
-        top_growth.sort_values("price_change_pct"),
+        top_growth_sorted,
         x="price_change_pct", y="name_en", orientation="h",
         color="is_major_metro",
         color_discrete_map={True: "#3B82F6", False: "#93C5FD"},
         labels={"price_change_pct": "Price growth (%)", "name_en": "", "is_major_metro": "Major metro"},
+        category_orders={"name_en": top_growth_sorted["name_en"].tolist()},
     )
     fig_bar.update_layout(**base2, showlegend=False)
     fig_bar.update_xaxes(gridcolor=grid2, ticksuffix="%")
+    fig_bar.update_yaxes(categoryorder="array", categoryarray=top_growth_sorted["name_en"].tolist())
+    fig_bar.update_traces(hovertemplate="%{y}<br>Price growth: %{x:.0f}%<extra></extra>")
     st.plotly_chart(fig_bar, use_container_width=True, config={"scrollZoom": False, "doubleClick": False, "displayModeBar": False})
 
 
@@ -294,6 +308,7 @@ with tab_akiya:
         fig_vac.update_layout(**base3)
         fig_vac.update_coloraxes(showscale=False)
         fig_vac.update_xaxes(gridcolor=grid3, ticksuffix="%")
+        fig_vac.update_traces(hovertemplate="%{y}<br>Vacancy rate: %{x:.1f}%<extra></extra>")
         st.plotly_chart(fig_vac, use_container_width=True, config={"scrollZoom": False, "doubleClick": False, "displayModeBar": False})
 
     callout(
@@ -322,6 +337,7 @@ with tab_akiya:
     )
     fig_trend.update_xaxes(showgrid=False, tickvals=[2013, 2018, 2023])
     fig_trend.update_yaxes(gridcolor=grid4, ticksuffix="%")
+    fig_trend.update_traces(hovertemplate="%{fullData.name}<br>%{x}<br>Avg vacancy: %{y:.1f}%<extra></extra>")
     st.plotly_chart(fig_trend, use_container_width=True, config={"scrollZoom": False, "doubleClick": False, "displayModeBar": False})
 
     callout(

@@ -20,15 +20,24 @@ def ward_summary(df: pd.DataFrame) -> pd.DataFrame:
     return agg.sort_values("median_ppm2", ascending=False)
 
 
+MIN_SAMPLE_FOR_YOY = 30  # below this, median is too noisy to publish
+
+
 def yoy_growth(df: pd.DataFrame, ward: str | None = None) -> float:
-    """Year-over-year median price/m² growth using the last 2 available years."""
+    """Year-over-year median price/m² growth using the last 2 available years.
+    Returns 0.0 when either year has fewer than MIN_SAMPLE_FOR_YOY transactions.
+    """
     d = df if ward is None else df[df["ward"] == ward]
     available_years = sorted(d["tx_year"].dropna().unique())
     if len(available_years) < 2:
         return 0.0
     y_curr, y_prev = available_years[-1], available_years[-2]
-    p_prev = d[d["tx_year"] == y_prev]["price_per_m2_jpy"].median()
-    p_curr = d[d["tx_year"] == y_curr]["price_per_m2_jpy"].median()
+    d_curr = d[d["tx_year"] == y_curr]
+    d_prev = d[d["tx_year"] == y_prev]
+    if len(d_curr) < MIN_SAMPLE_FOR_YOY or len(d_prev) < MIN_SAMPLE_FOR_YOY:
+        return 0.0
+    p_prev = d_prev["price_per_m2_jpy"].median()
+    p_curr = d_curr["price_per_m2_jpy"].median()
     if pd.isna(p_prev) or pd.isna(p_curr) or p_prev == 0:
         return 0.0
     return float((p_curr - p_prev) / p_prev * 100)
@@ -42,17 +51,6 @@ def price_trend(df: pd.DataFrame, ward: str | None = None) -> pd.DataFrame:
         n=("trade_price_jpy", "size"),
     ).reset_index().sort_values("tx_period")
     return trend
-
-
-def top_stations(df: pd.DataFrame, ward: str | None = None, n: int = 10) -> pd.DataFrame:
-    """Top stations by median price/m² (within a ward if specified)."""
-    d = df if ward is None else df[df["ward"] == ward]
-    g = d.groupby("nearest_station").agg(
-        median_ppm2=("price_per_m2_jpy", "median"),
-        n_transactions=("trade_price_jpy", "size"),
-    ).reset_index()
-    g = g[g["n_transactions"] >= 5]
-    return g.sort_values("median_ppm2", ascending=False).head(n)
 
 
 def layout_distribution(df: pd.DataFrame, ward: str | None = None) -> pd.DataFrame:
@@ -119,15 +117,20 @@ def investment_signals(df: pd.DataFrame) -> pd.DataFrame:
     for ward in df["ward"].unique():
         ward_df = df[df["ward"] == ward]
 
-        p_prev = ward_df[ward_df["tx_year"] == y_prev]["price_per_m2_jpy"].median()
-        p_curr = ward_df[ward_df["tx_year"] == y_curr]["price_per_m2_jpy"].median()
-        if pd.isna(p_prev) or pd.isna(p_curr) or p_prev == 0:
+        prev_df = ward_df[ward_df["tx_year"] == y_prev]
+        curr_df = ward_df[ward_df["tx_year"] == y_curr]
+        n_prev, n_curr = len(prev_df), len(curr_df)
+
+        if n_prev < MIN_SAMPLE_FOR_YOY or n_curr < MIN_SAMPLE_FOR_YOY:
             momentum = 0.0
         else:
-            momentum = float((p_curr - p_prev) / p_prev * 100)
+            p_prev = prev_df["price_per_m2_jpy"].median()
+            p_curr = curr_df["price_per_m2_jpy"].median()
+            if pd.isna(p_prev) or pd.isna(p_curr) or p_prev == 0:
+                momentum = 0.0
+            else:
+                momentum = float((p_curr - p_prev) / p_prev * 100)
 
-        n_prev = len(ward_df[ward_df["tx_year"] == y_prev])
-        n_curr = len(ward_df[ward_df["tx_year"] == y_curr])
         vol_trend = float((n_curr - n_prev) / n_prev * 100) if n_prev > 0 else 0.0
 
         median_ppm2 = float(ward_df["price_per_m2_jpy"].median())

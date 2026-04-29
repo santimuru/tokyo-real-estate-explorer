@@ -395,10 +395,6 @@ def _geo_name(name_en: str) -> str:
     return _GEO_NAME_OVERRIDES.get(name_en, name_en + " Ken")
 
 
-def get_prefecture(code: int) -> dict:
-    return PREFECTURES[code]
-
-
 def get_all_as_df() -> "pd.DataFrame":
     import pandas as pd
     rows = []

@@ -210,12 +210,10 @@ with tab1:
 with tab2:
     section_title(
         f"Tokyo market evolution {min_year}–{max_year}",
-        "Quarterly median price/m² for the entire city. YoY breakdown by ward and property type below.",
+        "YoY breakdown by ward and property type below. Heatmap reveals which wards appreciated and which plateaued.",
     )
 
     trend_all = price_trend(df)
-    all_periods = trend_all["tx_period"].tolist()
-    tick_vals, tick_texts = year_ticks(all_periods)
     first_val, last_val = trend_all["median_ppm2"].iloc[0], trend_all["median_ppm2"].iloc[-1]
     total_growth = (last_val - first_val) / first_val * 100
 
@@ -228,18 +226,6 @@ with tab2:
         variant="pos",
     )
 
-    base, grid, _ = plotly_base(300)
-    fig_area = px.area(
-        trend_all, x="tx_period", y="median_ppm2",
-        labels={"tx_period": "", "median_ppm2": "Median ¥/m²"},
-    )
-    fig_area.update_traces(line_color="#3B82F6", line_width=2.5, fillcolor="rgba(59,130,246,0.12)")
-    fig_area.update_layout(**base)
-    fig_area.update_xaxes(tickvals=tick_vals, ticktext=tick_texts, showgrid=False)
-    fig_area.update_yaxes(gridcolor=grid, tickformat=",.0f")
-    st.plotly_chart(fig_area, use_container_width=True, config={"scrollZoom": False, "doubleClick": False, "displayModeBar": False})
-
-    st.markdown("---")
     c1, c2 = st.columns(2)
 
     with c1:
@@ -258,6 +244,7 @@ with tab2:
         fig_yoy.update_coloraxes(showscale=False)
         fig_yoy.update_xaxes(gridcolor=grid2, ticksuffix="%")
         fig_yoy.add_vline(x=0, line_dash="dot", line_color=zero2, line_width=1)
+        fig_yoy.update_traces(hovertemplate="%{y}<br>YoY: %{x:+.1f}%<extra></extra>")
         st.plotly_chart(fig_yoy, use_container_width=True, config={"scrollZoom": False, "doubleClick": False, "displayModeBar": False})
 
     with c2:
@@ -273,7 +260,7 @@ with tab2:
         pt_periods = sorted(trend_pt["tx_period"].unique().tolist())
         tv, tt = year_ticks(pt_periods)
 
-        base3, grid3, _ = plotly_base(260)
+        base3, grid3, _ = plotly_base(520)
         fig_pt = px.line(
             trend_pt, x="tx_period", y="median_ppm2", color="property_type", markers=True,
             labels={"tx_period": "", "median_ppm2": "¥/m²", "property_type": ""},
@@ -285,24 +272,25 @@ with tab2:
         )
         fig_pt.update_xaxes(tickvals=tv, ticktext=tt, showgrid=False)
         fig_pt.update_yaxes(gridcolor=grid3, tickformat=",.0f")
+        fig_pt.update_traces(hovertemplate="%{fullData.name}<br>%{x}<br>¥/m²: %{y:,.0f}<extra></extra>")
         st.plotly_chart(fig_pt, use_container_width=True, config={"scrollZoom": False, "doubleClick": False, "displayModeBar": False})
 
-        section_title("Ward × year price heatmap", "Each cell = median ¥/m²")
-        heat_df = (
-            df.groupby(["ward", "tx_year"])["price_per_m2_jpy"]
-            .median().reset_index()
-        )
-        heat_pivot = heat_df.pivot(index="ward", columns="tx_year", values="price_per_m2_jpy")
-        base4, _, _ = plotly_base(520)
-        fig_heat = px.imshow(
-            heat_pivot,
-            color_continuous_scale=["#DBEAFE", "#3B82F6", "#1D4ED8"],
-            labels={"color": "¥/m²", "x": "", "y": ""},
-            aspect="auto",
-        )
-        fig_heat.update_layout(**base4, coloraxis_colorbar=dict(title="¥/m²", tickformat=",.0f"))
-        fig_heat.update_xaxes(side="bottom", tickformat="d")
-        st.plotly_chart(fig_heat, use_container_width=True, config={"scrollZoom": False, "doubleClick": False, "displayModeBar": False})
+    section_title("Ward × year price heatmap", "Each cell = median ¥/m² — spot which wards appreciated fastest and which plateaued")
+    heat_df = (
+        df.groupby(["ward", "tx_year"])["price_per_m2_jpy"]
+        .median().reset_index()
+    )
+    heat_pivot = heat_df.pivot(index="ward", columns="tx_year", values="price_per_m2_jpy")
+    base4, _, _ = plotly_base(520)
+    fig_heat = px.imshow(
+        heat_pivot,
+        color_continuous_scale=["#DBEAFE", "#3B82F6", "#1D4ED8"],
+        labels={"color": "¥/m²", "x": "", "y": ""},
+        aspect="auto",
+    )
+    fig_heat.update_layout(**base4, coloraxis_colorbar=dict(title="¥/m²", tickformat=",.0f"))
+    fig_heat.update_xaxes(side="bottom", tickformat="d")
+    st.plotly_chart(fig_heat, use_container_width=True, config={"scrollZoom": False, "doubleClick": False, "displayModeBar": False})
 
 
 # ══════════════════════════════════════════════════════════════════════
@@ -361,6 +349,7 @@ with tab3:
         fig.update_layout(**base, bargap=0.05)
         fig.update_xaxes(tickformat=".2s")
         fig.update_yaxes(gridcolor=grid)
+        fig.update_traces(hovertemplate="Price: ¥%{x:,.0f}<extra></extra>")
         st.plotly_chart(fig, use_container_width=True, config={"scrollZoom": False, "doubleClick": False, "displayModeBar": False})
 
     with r1c2:
@@ -379,6 +368,7 @@ with tab3:
         )
         fig.update_yaxes(gridcolor=grid2, tickformat=",.0f")
         fig.update_xaxes(gridcolor=grid2)
+        fig.update_traces(hovertemplate="%{fullData.name}<br>Area: %{x:.0f} m²<br>¥/m²: %{y:,.0f}<extra></extra>")
         st.plotly_chart(fig, use_container_width=True, config={"scrollZoom": False, "doubleClick": False, "displayModeBar": False})
 
     r2c1, r2c2 = st.columns(2)
@@ -392,7 +382,8 @@ with tab3:
             base3, grid3, _ = plotly_base(300)
             fig = px.line(trend_w, x="tx_period", y="median_ppm2", markers=True,
                           labels={"tx_period": "", "median_ppm2": "¥/m²"})
-            fig.update_traces(line_color="#3B82F6", line_width=3, marker_size=7)
+            fig.update_traces(line_color="#3B82F6", line_width=3, marker_size=7,
+                              hovertemplate="%{x}<br>¥/m²: %{y:,.0f}<extra></extra>")
             fig.update_layout(**base3)
             fig.update_xaxes(tickvals=tv, ticktext=tt, showgrid=False)
             fig.update_yaxes(gridcolor=grid3, tickformat=",.0f")
@@ -414,6 +405,7 @@ with tab3:
             fig.update_layout(**base4)
             fig.update_coloraxes(showscale=False)
             fig.update_xaxes(gridcolor=grid4)
+            fig.update_traces(hovertemplate="%{y}<br>Transactions: %{x:,}<extra></extra>")
             st.plotly_chart(fig, use_container_width=True, config={"scrollZoom": False, "doubleClick": False, "displayModeBar": False})
         else:
             st.info("No layout data available for this ward with current filters.")
@@ -446,7 +438,11 @@ with tab4:
         est_area    = st.number_input("Floor area (m²)", min_value=15, max_value=300, value=55, step=5)
     with ec2:
         est_year    = st.number_input("Year built", min_value=1970, max_value=datetime.now().year, value=2010, step=1)
-        est_minutes = st.number_input("Walk to nearest station (min)", min_value=1, max_value=30, value=8, step=1)
+        if is_live:
+            est_minutes = 8  # MLIT API doesn't include station walk-time; not used in live matching
+            st.caption("ℹ️ Station proximity unavailable from MLIT API — not used in matching.")
+        else:
+            est_minutes = st.number_input("Walk to nearest station (min)", min_value=1, max_value=30, value=8, step=1)
 
     _structure_opts  = ["Any", "RC", "SRC", "Steel", "Light Steel", "Wood"]
     _direction_opts  = ["Any", "South", "Southeast", "Southwest", "East", "West", "North", "Northeast", "Northwest"]
@@ -618,7 +614,8 @@ with tab5:
                     labels={"median_ppm2": "Median ¥/m²", "district": ""},
                     text=top_nb.sort_values("median_ppm2")["median_ppm2"].apply(lambda x: f"¥{x/10000:.0f}万"),
                 )
-                fig_nb.update_traces(textposition="outside")
+                fig_nb.update_traces(textposition="outside",
+                                    hovertemplate="%{y}<br>¥/m²: %{x:,.0f}<extra></extra>")
                 fig_nb.update_layout(**base)
                 fig_nb.update_coloraxes(showscale=False)
                 fig_nb.update_xaxes(gridcolor=grid, tickformat=",.0f")
@@ -678,7 +675,8 @@ with tab5:
                 text=struct_df.sort_values("premium_pct")["premium_pct"].apply(lambda x: f"{x:+.1f}%"),
                 labels={"premium_pct": "Premium vs city median (%)", "structure": ""},
             )
-            fig_struct.update_traces(textposition="outside")
+            fig_struct.update_traces(textposition="outside",
+                                    hovertemplate="%{y}<br>Premium: %{x:+.1f}%<extra></extra>")
             fig_struct.update_layout(**base)
             fig_struct.update_coloraxes(showscale=False)
             fig_struct.add_vline(x=0, line_dash="dot", line_color=zero, line_width=1)
@@ -701,7 +699,8 @@ with tab5:
                     text=dir_df.sort_values("premium_pct")["premium_pct"].apply(lambda x: f"{x:+.1f}%"),
                     labels={"premium_pct": "Premium (%)", "direction": ""},
                 )
-                fig_dir.update_traces(textposition="outside")
+                fig_dir.update_traces(textposition="outside",
+                                     hovertemplate="%{y}<br>Premium: %{x:+.1f}%<extra></extra>")
                 fig_dir.update_layout(**base2)
                 fig_dir.update_coloraxes(showscale=False)
                 fig_dir.add_vline(x=0, line_dash="dot", line_color=zero2, line_width=1)

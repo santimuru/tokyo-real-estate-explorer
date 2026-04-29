@@ -566,9 +566,24 @@ def section_divider(label: str) -> None:
     )
 
 
-def platform_hero() -> None:
-    """Full-width hero shown on the home page above all sections."""
-    st.markdown("""
+def platform_hero(stats: list[tuple[str, str]] | None = None) -> None:
+    """Full-width hero shown on the home page above all sections.
+    `stats` is a list of (value, label) tuples — defaults to project-spec counters
+    when None, but the home page passes computed insight numbers.
+    """
+    if stats is None:
+        stats = [
+            ("47", "Prefectures"),
+            ("23", "Tokyo Wards"),
+            ("9M+", "Vacant Homes"),
+            ("2015–24", "Data Range"),
+            ("¥/m²", "Transaction Level"),
+        ]
+    stats_html = "".join(
+        f'<div><div class="ph-stat-n">{v}</div><div class="ph-stat-l">{l}</div></div>'
+        for v, l in stats
+    )
+    st.markdown(f"""
 <div class="platform-hero">
     <div class="ph-eyebrow">Portfolio Project &nbsp;·&nbsp; Python · Streamlit · Plotly · MLIT API</div>
     <div class="ph-title">Japan Real Estate Intelligence</div>
@@ -578,28 +593,7 @@ def platform_hero() -> None:
         Explore national price maps, demographic trends, the akiya vacancy crisis,
         and deep ward-level analytics including a k-NN price estimator and investment signal dashboard.
     </div>
-    <div class="ph-stats">
-        <div>
-            <div class="ph-stat-n">47</div>
-            <div class="ph-stat-l">Prefectures</div>
-        </div>
-        <div>
-            <div class="ph-stat-n">23</div>
-            <div class="ph-stat-l">Tokyo Wards</div>
-        </div>
-        <div>
-            <div class="ph-stat-n">9M+</div>
-            <div class="ph-stat-l">Vacant Homes</div>
-        </div>
-        <div>
-            <div class="ph-stat-n">2015–24</div>
-            <div class="ph-stat-l">Data Range</div>
-        </div>
-        <div>
-            <div class="ph-stat-n">¥/m²</div>
-            <div class="ph-stat-l">Transaction Level</div>
-        </div>
-    </div>
+    <div class="ph-stats">{stats_html}</div>
 </div>
 """, unsafe_allow_html=True)
 
@@ -613,6 +607,7 @@ def nav_sidebar() -> None:
         st.page_link("pages/1_City_Comparison.py",  label="City Comparison", icon="🏙️")
         st.page_link("pages/2_Tokyo_Deep_Dive.py",  label="Tokyo Deep Dive", icon="🗼")
         st.markdown("<hr style='margin:0.75rem 0; border-color:var(--border);'>", unsafe_allow_html=True)
+        st.page_link("pages/3_About.py", label="About & Methodology", icon="ℹ️")
 
 
 def footer(page_name: str, source: str = "MLIT Real Estate Information Library") -> None:

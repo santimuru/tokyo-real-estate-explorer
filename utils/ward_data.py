@@ -85,14 +85,3 @@ PROPERTY_TYPE_WEIGHTS = {
     "Land Only":      0.14,
 }
 
-LAYOUTS = ["1R", "1K", "1DK", "1LDK", "2DK", "2LDK", "3DK", "3LDK", "4LDK"]
-
-# Layout distribution (shifts by property type downstream)
-LAYOUT_WEIGHTS_APARTMENT = [0.08, 0.12, 0.06, 0.22, 0.05, 0.24, 0.03, 0.17, 0.03]
-
-def get_ward_list():
-    """Return list of ward names (English)."""
-    return list(TOKYO_WARDS.keys())
-
-def get_ward_info(name):
-    return TOKYO_WARDS[name]

@@ -29,10 +29,7 @@ import requests
 from .ward_data import (
     TOKYO_WARDS,
     WARD_MAIN_STATIONS,
-    PROPERTY_TYPES,
     PROPERTY_TYPE_WEIGHTS,
-    LAYOUTS,
-    LAYOUT_WEIGHTS_APARTMENT,
 )
 
 RANDOM_SEED = 42

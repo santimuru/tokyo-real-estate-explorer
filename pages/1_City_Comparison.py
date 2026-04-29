@@ -154,6 +154,7 @@ fig_trend.update_layout(
 )
 fig_trend.update_xaxes(tickvals=tick_vals, ticktext=tick_texts, showgrid=False)
 fig_trend.update_yaxes(gridcolor=grid, tickformat=",.0f")
+fig_trend.update_traces(hovertemplate="%{fullData.name}<br>%{x}<br>¥/m²: %{y:,.0f}<extra></extra>")
 st.plotly_chart(fig_trend, use_container_width=True, config={"scrollZoom": False, "doubleClick": False, "displayModeBar": False})
 
 
@@ -180,6 +181,7 @@ with col_left:
     fig_bar.update_layout(**base2)
     fig_bar.update_coloraxes(showscale=False)
     fig_bar.update_xaxes(gridcolor=grid2, tickformat=",.0f")
+    fig_bar.update_traces(hovertemplate="%{y}<br>¥/m²: %{x:,.0f}<extra></extra>")
     st.plotly_chart(fig_bar, use_container_width=True, config={"scrollZoom": False, "doubleClick": False, "displayModeBar": False})
 
 with col_right:
@@ -204,6 +206,7 @@ with col_right:
         legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
     )
     fig_type.update_xaxes(gridcolor=grid3, tickformat=".0%")
+    fig_type.update_traces(hovertemplate="%{fullData.name}<br>%{y}<br>Share: %{x:.0%}<extra></extra>")
     st.plotly_chart(fig_type, use_container_width=True, config={"scrollZoom": False, "doubleClick": False, "displayModeBar": False})
 
 
