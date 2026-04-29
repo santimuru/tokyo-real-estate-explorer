@@ -56,7 +56,9 @@ with st.sidebar:
         value=(int(min(years_available)), int(max(years_available))),
         format="%d",
     )
-    ptype_filter = st.multiselect("Property type", options=PROPERTY_TYPES, default=PROPERTY_TYPES)
+    # Only offer property types that actually have data
+    available_types = sorted(df_all["property_type"].dropna().unique().tolist())
+    ptype_filter = st.multiselect("Property type", options=available_types, default=available_types)
     area_min, area_max = st.slider("Area (m²)", 0, 300, (0, 300), step=10)
 
     st.markdown("---")
@@ -90,6 +92,10 @@ df = df_all[
     & (df_all["property_type"].isin(ptype_filter))
     & (df_all["area_m2"].between(area_min, area_max))
 ].copy()
+
+if not ptype_filter:
+    st.warning("Select at least one property type in the sidebar.")
+    st.stop()
 
 if df.empty:
     st.warning("No transactions match the current filters. Try widening them.")
@@ -242,7 +248,8 @@ with tab2:
             color_continuous_midpoint=0,
             labels={"yoy": "YoY (%)", "ward": ""},
         )
-        fig_yoy.update_layout(**base2, coloraxis_showscale=False)
+        fig_yoy.update_layout(**base2)
+        fig_yoy.update_coloraxes(showscale=False)
         fig_yoy.update_xaxes(gridcolor=grid2, ticksuffix="%")
         fig_yoy.add_vline(x=0, line_dash="dot", line_color=zero2, line_width=1)
         st.plotly_chart(fig_yoy, use_container_width=True)
@@ -398,7 +405,8 @@ with tab3:
                 color_continuous_scale=["#BFDBFE", "#3B82F6", "#1D4ED8"],
                 labels={"n": "Transactions", "layout": ""},
             )
-            fig.update_layout(**base4, coloraxis_showscale=False)
+            fig.update_layout(**base4)
+            fig.update_coloraxes(showscale=False)
             fig.update_xaxes(gridcolor=grid4)
             st.plotly_chart(fig, use_container_width=True)
         else:
@@ -507,7 +515,7 @@ with tab5:
         sig_col, top_col = st.columns([3, 1])
 
         with sig_col:
-            base, grid, zero = plotly_base(480)
+            base, grid, zero = plotly_base(480, margin=dict(l=8, r=8, t=20, b=40))
             city_med_ppm2 = float(df["price_per_m2_jpy"].median())
             avg_momentum  = float(sig_df["momentum_pct"].mean())
 
@@ -550,7 +558,7 @@ with tab5:
                 )
 
             fig_sig.update_layout(
-                **base, margin=dict(l=8, r=8, t=20, b=40), showlegend=False,
+                **base, showlegend=False,
                 xaxis=dict(title="Median ¥/m²", gridcolor=grid, tickformat=",.0f"),
                 yaxis=dict(title="YoY Momentum (%)", gridcolor=grid, ticksuffix="%"),
             )
@@ -605,7 +613,8 @@ with tab5:
                     text=top_nb.sort_values("median_ppm2")["median_ppm2"].apply(lambda x: f"¥{x/10000:.0f}万"),
                 )
                 fig_nb.update_traces(textposition="outside")
-                fig_nb.update_layout(**base, coloraxis_showscale=False)
+                fig_nb.update_layout(**base)
+                fig_nb.update_coloraxes(showscale=False)
                 fig_nb.update_xaxes(gridcolor=grid, tickformat=",.0f")
                 st.plotly_chart(fig_nb, use_container_width=True)
             with nb_col2:
@@ -664,7 +673,8 @@ with tab5:
                 labels={"premium_pct": "Premium vs city median (%)", "structure": ""},
             )
             fig_struct.update_traces(textposition="outside")
-            fig_struct.update_layout(**base, coloraxis_showscale=False)
+            fig_struct.update_layout(**base)
+            fig_struct.update_coloraxes(showscale=False)
             fig_struct.add_vline(x=0, line_dash="dot", line_color=zero, line_width=1)
             fig_struct.update_xaxes(gridcolor=grid, ticksuffix="%")
             st.plotly_chart(fig_struct, use_container_width=True)
@@ -686,7 +696,8 @@ with tab5:
                     labels={"premium_pct": "Premium (%)", "direction": ""},
                 )
                 fig_dir.update_traces(textposition="outside")
-                fig_dir.update_layout(**base2, coloraxis_showscale=False)
+                fig_dir.update_layout(**base2)
+                fig_dir.update_coloraxes(showscale=False)
                 fig_dir.add_vline(x=0, line_dash="dot", line_color=zero2, line_width=1)
                 fig_dir.update_xaxes(gridcolor=grid2, ticksuffix="%")
                 st.plotly_chart(fig_dir, use_container_width=True)

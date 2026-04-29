@@ -18,19 +18,22 @@ def is_dark() -> bool:
 
 # ── Plotly helpers ─────────────────────────────────────────────────────────────
 
-def plotly_base(height: int = 420) -> tuple[dict, str, str]:
-    """Return (layout_dict, grid_color, zero_color) for a transparent Plotly chart."""
+def plotly_base(height: int = 420, margin: dict | None = None) -> tuple[dict, str, str]:
+    """Return (layout_dict, grid_color, zero_color) for a transparent Plotly chart.
+    Pass margin= to override the default; avoids duplicate-keyword errors when spreading **base.
+    """
     dark = is_dark()
     font_color = "#F1F5F9" if dark else "#0F172A"
     grid  = "#2D3748" if dark else "#E2E8F0"
     zero  = "#4A5568" if dark else "#CBD5E0"
+    m = margin if margin is not None else dict(l=8, r=8, t=24, b=8)
     return (
         dict(
             plot_bgcolor="rgba(0,0,0,0)",
             paper_bgcolor="rgba(0,0,0,0)",
             height=height,
             font=dict(color=font_color, family="Inter, sans-serif", size=12),
-            margin=dict(l=8, r=8, t=24, b=8),
+            margin=m,
         ),
         grid,
         zero,
@@ -61,8 +64,10 @@ def inject_css() -> None:
 html, body, [class*="css"] {
     font-family: 'Inter', sans-serif !important;
 }
+/* Collapse Streamlit's default top toolbar height */
+[data-testid="stHeader"] { height: 0 !important; min-height: 0 !important; }
 .main .block-container {
-    padding-top: 1.5rem;
+    padding-top: 0.5rem !important;
     padding-bottom: 3rem;
     max-width: 1440px;
 }

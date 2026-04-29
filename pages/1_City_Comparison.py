@@ -170,7 +170,8 @@ with col_left:
         color_continuous_scale=["#BFDBFE", "#3B82F6", "#1D4ED8"],
         labels={"median_ppm2": "¥/m²", "city": ""},
     )
-    fig_bar.update_layout(**base2, coloraxis_showscale=False)
+    fig_bar.update_layout(**base2)
+    fig_bar.update_coloraxes(showscale=False)
     fig_bar.update_xaxes(gridcolor=grid2, tickformat=",.0f")
     st.plotly_chart(fig_bar, use_container_width=True)
 

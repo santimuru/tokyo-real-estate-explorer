@@ -74,9 +74,7 @@ if section == "Price Map":
         badges=["47 Prefectures", "2015 – 2024"],
     )
 
-    col_ctrl, _ = st.columns([2, 5])
-    with col_ctrl:
-        year_sel = st.select_slider("Year", options=[2015, 2019, 2024], value=2024)
+    year_sel = st.radio("Select year", [2015, 2019, 2024], index=2, horizontal=True)
     price_col = PRICE_COLS[year_sel]
 
     tokyo_price = df.loc[df["name_en"] == "Tokyo", price_col].iloc[0]
@@ -112,17 +110,19 @@ if section == "Price Map":
 
     col_a, col_b = st.columns(2)
     with col_a:
-        section_title("Top 10 most expensive", "Ranked by median ¥/m² in selected year")
-        top10 = df.nlargest(10, price_col)[["name_en", "name_ja", price_col, "rank_2024"]].copy()
+        section_title("Top 10 most expensive", f"Ranked by median ¥/m² in {year_sel}")
+        top10 = df.nlargest(10, price_col)[["name_en", "name_ja", price_col]].copy()
         top10["¥/m²"] = top10[price_col].apply(lambda x: f"¥{x/10000:.0f}万")
-        top10 = top10.rename(columns={"name_en": "Prefecture", "name_ja": "日本語", "rank_2024": "Rank"})
-        st.dataframe(top10[["Prefecture", "日本語", "¥/m²", "Rank"]], use_container_width=True, hide_index=True)
+        top10 = top10.rename(columns={"name_en": "Prefecture", "name_ja": "日本語"})
+        top10.index = range(1, len(top10) + 1)
+        st.dataframe(top10[["Prefecture", "日本語", "¥/m²"]], use_container_width=True)
     with col_b:
-        section_title("Top 10 most affordable")
+        section_title("Top 10 most affordable", f"Lowest median ¥/m² in {year_sel}")
         bot10 = df.nsmallest(10, price_col)[["name_en", "name_ja", price_col]].copy()
         bot10["¥/m²"] = bot10[price_col].apply(lambda x: f"¥{x/10000:.0f}万")
         bot10 = bot10.rename(columns={"name_en": "Prefecture", "name_ja": "日本語"})
-        st.dataframe(bot10[["Prefecture", "日本語", "¥/m²"]], use_container_width=True, hide_index=True)
+        bot10.index = range(1, len(bot10) + 1)
+        st.dataframe(bot10[["Prefecture", "日本語", "¥/m²"]], use_container_width=True)
 
 
 # ══════════════════════════════════════════════════════════════════════
@@ -162,7 +162,7 @@ elif section == "Depopulation & Prices":
     base, grid, zero = plotly_base(500)
     fig_scatter = px.scatter(
         df, x="pop_change_pct", y="price_change_pct",
-        color="is_major_metro", text="name_en", size="price_ppm2_2024", size_max=28,
+        color="is_major_metro", size="price_ppm2_2024", size_max=28,
         color_discrete_map={True: "#3B82F6", False: "#94A3B8"},
         labels={
             "pop_change_pct": "Population change 2010–2020 (%)",
@@ -170,9 +170,16 @@ elif section == "Depopulation & Prices":
             "is_major_metro": "Major metro",
         },
         hover_name="name_en",
-        hover_data={"name_en": False, "pop_change_pct": ":.1f", "price_change_pct": ":.1f"},
+        hover_data={"pop_change_pct": ":.1f", "price_change_pct": ":.1f"},
     )
-    fig_scatter.update_traces(textposition="top center", textfont_size=9)
+    # Label only the most notable prefectures to avoid overlap
+    label_mask = df["is_major_metro"] | (df["price_change_pct"] == df["price_change_pct"].max()) | (df["price_change_pct"] == df["price_change_pct"].min())
+    for _, row in df[label_mask].iterrows():
+        fig_scatter.add_annotation(
+            x=row["pop_change_pct"], y=row["price_change_pct"],
+            text=row["name_en"], showarrow=False,
+            yshift=12, font=dict(size=10),
+        )
     fig_scatter.update_layout(
         **base,
         legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
@@ -182,6 +189,16 @@ elif section == "Depopulation & Prices":
     fig_scatter.add_hline(y=0, line_dash="dot", line_color=zero)
     fig_scatter.add_vline(x=0, line_dash="dot", line_color=zero)
     st.plotly_chart(fig_scatter, use_container_width=True)
+
+    # Insight derived from data
+    most_surprising = df[~df["is_major_metro"]].nlargest(3, "price_change_pct")[["name_en", "price_change_pct"]]
+    callout(
+        f"<strong>Key insight:</strong> All 47 prefectures saw positive price growth (2015–2024) "
+        f"regardless of population change — Japan's near-zero interest rates and aggressive QE "
+        f"lifted prices everywhere. The <strong>biggest surprise performers outside the major metros</strong>: "
+        + ", ".join(f"{r['name_en']} (+{r['price_change_pct']:.0f}%)" for _, r in most_surprising.iterrows())
+        + ". Hover over any point for details."
+    )
 
     section_title("Top 10 prefectures by price growth (2015–2024)")
     top_growth = df.nlargest(10, "price_change_pct")[["name_en", "price_change_pct", "is_major_metro"]].copy()
@@ -264,7 +281,8 @@ elif section == "Akiya Crisis":
             color_continuous_scale=["#FDE68A", "#F59E0B", "#DC2626"],
             labels={"akiya_rate_2023": "Vacancy rate (%)", "name_en": ""},
         )
-        fig_vac.update_layout(**base3, coloraxis_showscale=False)
+        fig_vac.update_layout(**base3)
+        fig_vac.update_coloraxes(showscale=False)
         fig_vac.update_xaxes(gridcolor=grid3, ticksuffix="%")
         st.plotly_chart(fig_vac, use_container_width=True)
 
