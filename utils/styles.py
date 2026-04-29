@@ -34,6 +34,7 @@ def plotly_base(height: int = 420, margin: dict | None = None) -> tuple[dict, st
             height=height,
             font=dict(color=font_color, family="Inter, sans-serif", size=12),
             margin=m,
+            dragmode=False,
         ),
         grid,
         zero,
