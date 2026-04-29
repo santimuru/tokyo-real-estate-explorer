@@ -4,12 +4,17 @@ National overview: prefecture price map, depopulation vs prices, and the akiya v
 """
 from __future__ import annotations
 
+import numpy as np
 import requests
 import pandas as pd
 import plotly.express as px
 import streamlit as st
 
-from utils.styles import inject_css, platform_hero, feature_cards, section_divider, page_header, section_title, callout, kpi_card, footer, plotly_base, nav_sidebar
+from utils.styles import (
+    inject_css, platform_hero, feature_cards, page_header,
+    section_title, callout, kpi_card, footer, plotly_base,
+    nav_sidebar, is_dark,
+)
 from utils.prefecture_data import get_all_as_df, NATIONAL_AVG_PPM2
 
 st.set_page_config(
@@ -23,14 +28,8 @@ nav_sidebar()
 platform_hero()
 feature_cards()
 
-# ── Sidebar ────────────────────────────────────────────────────────────────────
+# ── Sidebar — info note only ───────────────────────────────────────────────────
 with st.sidebar:
-    section = st.radio(
-        "Section",
-        ["Price Map", "Depopulation & Prices", "Akiya Crisis"],
-        label_visibility="collapsed",
-    )
-    st.markdown("---")
     st.markdown("""
 <div class="info-badge">
     <strong>Data:</strong> Prefecture-level price estimates from MLIT aggregate reports
@@ -60,11 +59,16 @@ df = load_pref_df()
 PRICE_COLS = {2015: "price_ppm2_2015", 2019: "price_ppm2_2019", 2024: "price_ppm2_2024"}
 
 
+# ── Tabs ───────────────────────────────────────────────────────────────────────
+tab_map, tab_demo, tab_akiya, tab_about = st.tabs([
+    "🗺️ Price Map", "📊 Demographics", "🏚️ Akiya Crisis", "ℹ️ About",
+])
+
+
 # ══════════════════════════════════════════════════════════════════════
-# SECTION: PRICE MAP
+# TAB 1 — PRICE MAP
 # ══════════════════════════════════════════════════════════════════════
-if section == "Price Map":
-    section_divider("Japan Overview — Price Map")
+with tab_map:
     page_header(
         eyebrow="Japan Overview · Price Map",
         title="Real Estate Prices Across Japan",
@@ -110,6 +114,19 @@ if section == "Price Map":
     except Exception as exc:
         st.warning(f"Map unavailable: {exc}")
 
+    # Analytical insight derived from data
+    tokyo_2015  = df.loc[df["name_en"] == "Tokyo", "price_ppm2_2015"].iloc[0]
+    gap_2015    = tokyo_2015 / df["price_ppm2_2015"].min()
+    gap_2024    = df.loc[df["name_en"] == "Tokyo", "price_ppm2_2024"].iloc[0] / df["price_ppm2_2024"].min()
+    callout(
+        f"<strong>The gap is widening.</strong> In 2015, Tokyo traded at "
+        f"<strong>{gap_2015:.1f}×</strong> the cheapest prefecture. By 2024 that multiple "
+        f"had grown to <strong>{gap_2024:.1f}×</strong> — evidence that Japan's real estate boom "
+        f"is highly concentrated rather than broadly distributed. "
+        f"Rural prefectures appreciated in absolute terms (near-zero rates lifted all markets) "
+        f"but fell further behind Tokyo in relative terms. The year selector above makes this divergence visible."
+    )
+
     col_a, col_b = st.columns(2)
     with col_a:
         section_title("Top 10 most expensive", f"Ranked by median ¥/m² in {year_sel}")
@@ -128,24 +145,23 @@ if section == "Price Map":
 
 
 # ══════════════════════════════════════════════════════════════════════
-# SECTION: DEPOPULATION & PRICES
+# TAB 2 — DEMOGRAPHICS
 # ══════════════════════════════════════════════════════════════════════
-elif section == "Depopulation & Prices":
-    section_divider("Japan Overview — Population & Prices")
+with tab_demo:
     page_header(
         eyebrow="Japan Overview · Demographics",
         title="Population Decline vs Price Appreciation",
         desc=(
             "Japan lost population in 40 out of 47 prefectures between 2010 and 2020. "
             "Yet Tokyo prices rose over 40% in the same period. "
-            "This page explores whether demographic decline predicts real estate performance — "
+            "This section explores whether demographic decline predicts real estate performance — "
             "and why the answer is more nuanced than it appears."
         ),
         badges=["2010–2024", "47 Prefectures"],
     )
 
-    growing = (df["pop_change_pct"] > 0).sum()
-    declining = (df["pop_change_pct"] <= 0).sum()
+    growing          = (df["pop_change_pct"] > 0).sum()
+    declining        = (df["pop_change_pct"] <= 0).sum()
     avg_price_change = df["price_change_pct"].mean()
     tokyo_price_chg  = df.loc[df["name_en"] == "Tokyo", "price_change_pct"].iloc[0]
 
@@ -158,9 +174,19 @@ elif section == "Depopulation & Prices":
     callout(
         "Japan's real estate story isn't about population — it's about <strong>urbanisation concentration</strong>. "
         "Tokyo, Osaka, and Fukuoka absorbed most domestic migration, compressing demand into a handful of metros "
-        "while rural prefectures simultaneously lost people <em>and</em> saw prices stagnate. "
-        "The scatter below makes this divide visible."
+        "while rural prefectures simultaneously lost people <em>and</em> saw prices stagnate or grow slowly. "
+        "The scatter below makes this divide visible — each bubble is a prefecture, sized by its 2024 median ¥/m²."
     )
+
+    # Regression for analytical context
+    m_coef, b_coef = np.polyfit(df["pop_change_pct"], df["price_change_pct"], 1)
+    corr   = df["pop_change_pct"].corr(df["price_change_pct"])
+    r_sq   = corr ** 2
+
+    dark       = is_dark()
+    ann_bg     = "rgba(15,23,42,0.88)"   if dark else "rgba(255,255,255,0.92)"
+    ann_border = "#475569"               if dark else "#CBD5E0"
+    ann_font   = "#F1F5F9"               if dark else "#0F172A"
 
     base, grid, zero = plotly_base(500)
     fig_scatter = px.scatter(
@@ -168,21 +194,39 @@ elif section == "Depopulation & Prices":
         color="is_major_metro", size="price_ppm2_2024", size_max=28,
         color_discrete_map={True: "#3B82F6", False: "#94A3B8"},
         labels={
-            "pop_change_pct": "Population change 2010–2020 (%)",
+            "pop_change_pct":   "Population change 2010–2020 (%)",
             "price_change_pct": "Price appreciation 2015–2024 (%)",
-            "is_major_metro": "Major metro",
+            "is_major_metro":   "Major metro",
         },
         hover_name="name_en",
         hover_data={"pop_change_pct": ":.1f", "price_change_pct": ":.1f"},
     )
-    # Label only the most notable prefectures to avoid overlap
-    label_mask = df["is_major_metro"] | (df["price_change_pct"] == df["price_change_pct"].max()) | (df["price_change_pct"] == df["price_change_pct"].min())
+
+    # Regression line
+    x_range = [df["pop_change_pct"].min() - 0.5, df["pop_change_pct"].max() + 0.5]
+    fig_scatter.add_scatter(
+        x=x_range, y=[m_coef * x + b_coef for x in x_range],
+        mode="lines", line=dict(color="#94A3B8", dash="dot", width=1.5),
+        showlegend=False,
+    )
+
+    # Labels only on major metros + extremes — opaque background so they're always readable
+    label_mask = (
+        df["is_major_metro"] |
+        (df["price_change_pct"] == df["price_change_pct"].max()) |
+        (df["price_change_pct"] == df["price_change_pct"].min())
+    )
     for _, row in df[label_mask].iterrows():
         fig_scatter.add_annotation(
             x=row["pop_change_pct"], y=row["price_change_pct"],
-            text=row["name_en"], showarrow=False,
-            yshift=12, font=dict(size=10),
+            text=row["name_en"],
+            showarrow=True, arrowhead=0, arrowwidth=1,
+            arrowcolor=ann_border, ax=0, ay=-26,
+            font=dict(size=9, color=ann_font),
+            bgcolor=ann_bg, bordercolor=ann_border,
+            borderwidth=1, borderpad=3,
         )
+
     fig_scatter.update_layout(
         **base,
         legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
@@ -193,14 +237,17 @@ elif section == "Depopulation & Prices":
     fig_scatter.add_vline(x=0, line_dash="dot", line_color=zero)
     st.plotly_chart(fig_scatter, use_container_width=True, config={"scrollZoom": False})
 
-    # Insight derived from data
+    # Data-driven analytical callout
     most_surprising = df[~df["is_major_metro"]].nlargest(3, "price_change_pct")[["name_en", "price_change_pct"]]
     callout(
-        f"<strong>Key insight:</strong> All 47 prefectures saw positive price growth (2015–2024) "
-        f"regardless of population change — Japan's near-zero interest rates and aggressive QE "
-        f"lifted prices everywhere. The <strong>biggest surprise performers outside the major metros</strong>: "
+        f"<strong>Correlation is weak (R² = {r_sq:.2f}):</strong> Population change explains only "
+        f"{r_sq*100:.0f}% of the variation in price appreciation across prefectures. "
+        f"The dotted regression line is nearly flat — confirming that demographics alone "
+        f"do not drive real estate prices in Japan. Near-zero interest rates and aggressive "
+        f"BoJ QE lifted prices everywhere (all 47 prefectures saw positive appreciation 2015–2024). "
+        f"<strong>Biggest non-metro surprises:</strong> "
         + ", ".join(f"{r['name_en']} (+{r['price_change_pct']:.0f}%)" for _, r in most_surprising.iterrows())
-        + ". Hover over any point for details."
+        + ". Hover over any point for the full details."
     )
 
     section_title("Top 10 prefectures by price growth (2015–2024)")
@@ -219,10 +266,9 @@ elif section == "Depopulation & Prices":
 
 
 # ══════════════════════════════════════════════════════════════════════
-# SECTION: AKIYA CRISIS
+# TAB 3 — AKIYA CRISIS
 # ══════════════════════════════════════════════════════════════════════
-elif section == "Akiya Crisis":
-    section_divider("Japan Overview — Akiya Crisis")
+with tab_akiya:
     page_header(
         eyebrow="Japan Overview · Vacancy Crisis",
         title="Japan's Akiya (空き家) Problem",
@@ -236,9 +282,10 @@ elif section == "Akiya Crisis":
         badges=["空き家", "2013–2023", "47 Prefectures"],
     )
 
-    worst_row   = df.loc[df["akiya_rate_2023"].idxmax()]
-    nat_avg     = df["akiya_rate_2023"].mean()
-    avg_change  = (df["akiya_rate_2023"] - df["akiya_rate_2013"]).mean()
+    worst_row    = df.loc[df["akiya_rate_2023"].idxmax()]
+    nat_avg      = df["akiya_rate_2023"].mean()
+    avg_change   = (df["akiya_rate_2023"] - df["akiya_rate_2013"]).mean()
+    high_vacancy = int((df["akiya_rate_2023"] >= 20).sum())
 
     c1, c2, c3, c4 = st.columns(4)
     with c1: kpi_card("Vacant homes (est.)",  "9 million",                    "2023 Housing & Land Survey", accent=True)
@@ -249,9 +296,9 @@ elif section == "Akiya Crisis":
     callout(
         "The akiya crisis is <strong>not uniform</strong>. Coastal and mountain prefectures like "
         "Wakayama, Tokushima, and Kochi face 20%+ vacancy rates — one in five homes sitting empty. "
-        "Urban prefectures have lower rates but their absolute numbers of vacant units are growing "
-        "as households shrink and population ages. The maps below show both the geographic pattern "
-        "and the decade-long trajectory.",
+        "Urban prefectures have lower rates but their absolute vacant unit counts are still rising "
+        "as households shrink and the population ages. The maps below show both the geographic "
+        "pattern and the decade-long trajectory across regions.",
         variant="neg",
     )
 
@@ -290,6 +337,15 @@ elif section == "Akiya Crisis":
         fig_vac.update_xaxes(gridcolor=grid3, ticksuffix="%")
         st.plotly_chart(fig_vac, use_container_width=True, config={"scrollZoom": False})
 
+    callout(
+        f"<strong>{high_vacancy} prefectures</strong> already exceed 20% vacancy as of 2023. "
+        f"The hardest-hit regions — Shikoku, Chugoku, and the Kinki coast — face compounding pressures: "
+        f"an aging population that can no longer maintain properties, and younger generations "
+        f"who have already migrated to major cities. Some municipal governments now <em>pay buyers</em> "
+        f"to take ownership of akiya — with renovation subsidies reaching ¥1M+ in select towns.",
+        variant="neg",
+    )
+
     section_title("Vacancy rate by region (2013 → 2018 → 2023)")
     trend_data = []
     for _, row in df.iterrows():
@@ -309,6 +365,106 @@ elif section == "Akiya Crisis":
     fig_trend.update_xaxes(showgrid=False, tickvals=[2013, 2018, 2023])
     fig_trend.update_yaxes(gridcolor=grid4, ticksuffix="%")
     st.plotly_chart(fig_trend, use_container_width=True, config={"scrollZoom": False})
+
+    callout(
+        f"<strong>Projection:</strong> If the +{avg_change:.1f}pp per-decade increase continues, "
+        f"Japan's national vacancy rate will surpass <strong>20%</strong> by the early 2030s. "
+        f"Every region accelerated after 2018 — suggesting structural factors "
+        f"(inheritance laws making it legally complex to demolish inherited homes, high demolition costs, "
+        f"and cultural reluctance to sell family properties) are reinforcing the cycle "
+        f"beyond what demographic decline alone would predict.",
+        variant="neg",
+    )
+
+
+# ══════════════════════════════════════════════════════════════════════
+# TAB 4 — ABOUT
+# ══════════════════════════════════════════════════════════════════════
+with tab_about:
+    page_header(
+        eyebrow="Japan Real Estate Intelligence · About",
+        title="How This Was Built",
+        desc=(
+            "A portfolio project combining official Japanese government transaction data "
+            "with interactive analytics — from national prefecture trends to individual ward price estimators. "
+            "Built end-to-end in Python: data pipeline, API integration, and interactive visualisation."
+        ),
+        badges=["Open Source", "Portfolio Project", "Python · Streamlit · Plotly"],
+    )
+
+    col_left, col_right = st.columns([3, 2])
+
+    with col_left:
+        section_title("Tech stack")
+        st.markdown("""
+| Layer | Tools |
+|---|---|
+| Language | Python 3.11 |
+| App framework | Streamlit |
+| Visualisation | Plotly Express, Plotly Graph Objects, Pydeck |
+| Data wrangling | Pandas, NumPy |
+| Geospatial | Plotly choropleth + dataofjapan/land GeoJSON |
+| Maps | Pydeck (MapLibre) |
+| API | MLIT Real Estate Information Library — XIT001 endpoint |
+| Hosting | Streamlit Community Cloud |
+| Source control | GitHub |
+""")
+
+        section_title("Data sources")
+        st.markdown("""
+| Source | What it covers | How it's used |
+|---|---|---|
+| MLIT XIT001 API | Transaction-level data, all 47 prefectures | City Comparison + Tokyo Deep Dive |
+| Japan Housing & Land Survey | Prefecture akiya vacancy rates 2013 / 2018 / 2023 | Akiya Crisis tab |
+| Statistics Bureau of Japan | Prefectural population 2010, 2020 | Demographics scatter |
+| dataofjapan/land (GitHub) | Prefecture GeoJSON boundaries | All choropleth maps |
+| MLIT aggregate reports / REINS | Prefecture price estimates 2015 / 2019 / 2024 | Japan price map |
+
+**Note on MLIT data lag:** The XIT001 endpoint publishes data approximately 2 quarters behind the current date.
+The app dynamically computes the latest available period to avoid requesting data that doesn't exist yet.
+""")
+
+    with col_right:
+        section_title("Methodology")
+        st.markdown("""
+<div class="method-box">
+
+<h4>Price estimator (k-NN)</h4>
+Finds the <em>k</em> most similar transactions using a composite distance score across floor area,
+building age, and station proximity. Returns P10/P50/P90 percentiles of comparable ¥/m² values,
+scaled to total price. Falls back to all ward data if fewer than 20 matches exist.
+
+<h4>Investment Value Score</h4>
+Composite 0–100 score weighting YoY price momentum (60%) and relative affordability
+vs the Tokyo median (40%). A ward that is rising faster than average <em>and</em> still
+below the city median scores highest.
+
+<h4>YoY growth</h4>
+Compares median ¥/m² in the most recent calendar year in the dataset versus the prior year.
+Requires at least one transaction per year per ward.
+
+<h4>Ward × year heatmap</h4>
+Median ¥/m² per ward × year cell. Useful for spotting which wards appreciated fastest
+and which plateaued. Colour scale is relative to the full dataset range.
+
+<h4>Station proximity in estimator</h4>
+The MLIT XIT001 endpoint does not include station walk-time data. The station
+proximity input in the estimator is used for within-dataset matching comparisons
+but is not sourced from the API itself.
+
+</div>
+""", unsafe_allow_html=True)
+
+        st.markdown("---")
+        section_title("Author")
+        st.markdown("""
+**Santiago Martinez** — Data scientist and BI analyst.
+Building data products that make complex markets legible.
+
+- 🌐 [santimuru.github.io](https://santimuru.github.io)
+- 💻 [github.com/santimuru](https://github.com/santimuru)
+- 📁 [tokyo-real-estate-explorer repo](https://github.com/santimuru/tokyo-real-estate-explorer)
+""")
 
 
 footer("Japan Overview", "MLIT XIT001 API · Japan Housing and Land Survey · Statistics Bureau")

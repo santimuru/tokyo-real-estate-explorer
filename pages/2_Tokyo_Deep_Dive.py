@@ -57,9 +57,16 @@ with st.sidebar:
         value=(int(min(years_available)), int(max(years_available))),
         format="%d",
     )
-    # Only offer property types that actually have data
     available_types = sorted(df_all["property_type"].dropna().unique().tolist())
-    ptype_filter = st.multiselect("Property type", options=available_types, default=available_types)
+    st.markdown("**Property type**")
+    select_all_types = st.checkbox("All types", value=True, key="cb_all_types")
+    if select_all_types:
+        ptype_filter = available_types
+    else:
+        ptype_filter = [t for t in available_types if st.checkbox(t, value=True, key=f"cb_{t}")]
+        if not ptype_filter:
+            ptype_filter = available_types
+            st.caption("Showing all (none selected)")
     area_min, area_max = st.slider("Area (m²)", 0, 300, (0, 300), step=10)
 
     st.markdown("---")
@@ -94,9 +101,6 @@ df = df_all[
     & (df_all["area_m2"].between(area_min, area_max))
 ].copy()
 
-if not ptype_filter:
-    st.warning("Select at least one property type in the sidebar.")
-    st.stop()
 
 if df.empty:
     st.warning("No transactions match the current filters. Try widening them.")

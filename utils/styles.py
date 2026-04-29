@@ -606,16 +606,10 @@ def platform_hero() -> None:
 def nav_sidebar() -> None:
     """Custom sidebar navigation — replaces Streamlit's filename-based nav."""
     with st.sidebar:
-        st.markdown("""
-<div style="padding: 1rem 0 0.5rem; display:flex; align-items:center; gap:0.6rem;">
-    <span style="font-size:1.4rem;">🗾</span>
-    <span style="font-weight:700; font-size:0.95rem; color:var(--text-h);">Japan RE Intelligence</span>
-</div>
-""", unsafe_allow_html=True)
-        st.page_link("app.py",                          label="Japan Overview",  icon="🗾")
-        st.page_link("pages/1_City_Comparison.py",      label="City Comparison", icon="🏙️")
-        st.page_link("pages/2_Tokyo_Deep_Dive.py",      label="Tokyo Deep Dive", icon="🗼")
-        st.page_link("pages/3_About.py",                label="About",           icon="ℹ️")
+        st.page_link("app.py", label="Japan RE Intelligence", icon="🗾", use_container_width=True)
+        st.markdown("<hr style='margin:0.35rem 0 0.7rem; border-color:var(--border);'>", unsafe_allow_html=True)
+        st.page_link("pages/1_City_Comparison.py",  label="City Comparison", icon="🏙️")
+        st.page_link("pages/2_Tokyo_Deep_Dive.py",  label="Tokyo Deep Dive", icon="🗼")
         st.markdown("<hr style='margin:0.75rem 0; border-color:var(--border);'>", unsafe_allow_html=True)
 
 
