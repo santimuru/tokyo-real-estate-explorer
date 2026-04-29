@@ -268,10 +268,15 @@ with tab_akiya:
     with c3: kpi_card("Worst prefecture",     worst_row["name_en"],           f"{worst_row['akiya_rate_2023']:.1f}% vacancy", accent=True)
     with c4: kpi_card("10-yr trend",          f"+{avg_change:.1f}pp",         "2013→2023 avg increase")
 
+    top3_akiya = df.nlargest(3, "akiya_rate_2023")[["name_en", "akiya_rate_2023"]]
+    top3_str = ", ".join(
+        f"<strong>{r['name_en']}</strong> ({r['akiya_rate_2023']:.1f}%)"
+        for _, r in top3_akiya.iterrows()
+    )
     callout(
-        "The akiya crisis is <strong>not uniform</strong>. Coastal and mountain prefectures like "
-        "Wakayama, Tokushima, and Kochi face 20%+ vacancy rates — one in five homes sitting empty. "
-        "Urban prefectures have lower rates but growing absolute numbers as households shrink.",
+        f"The akiya crisis is <strong>not uniform</strong>. The hardest-hit prefectures — "
+        f"{top3_str} — sit above 20% vacancy. Urban prefectures have lower rates but growing "
+        f"absolute numbers as households shrink and inheritances pile up.",
         variant="neg",
     )
 

@@ -20,7 +20,7 @@ from utils.analytics import (
 )
 from utils.styles import (
     inject_css, page_header, section_title, callout, kpi_card,
-    footer, plotly_base, year_ticks, get_theme, nav_sidebar,
+    footer, plotly_base, year_ticks, get_theme, nav_sidebar, is_dark,
 )
 
 st.set_page_config(
@@ -59,14 +59,10 @@ with st.sidebar:
     )
     available_types = sorted(df_all["property_type"].dropna().unique().tolist())
     st.markdown("**Property type**")
-    select_all_types = st.checkbox("All types", value=True, key="cb_all_types")
-    if select_all_types:
+    ptype_filter = [t for t in available_types if st.checkbox(t, value=True, key=f"cb_{t}")]
+    if not ptype_filter:
         ptype_filter = available_types
-    else:
-        ptype_filter = [t for t in available_types if st.checkbox(t, value=True, key=f"cb_{t}")]
-        if not ptype_filter:
-            ptype_filter = available_types
-            st.caption("Showing all (none selected)")
+        st.caption("Showing all (none selected)")
     area_min, area_max = st.slider("Area (m²)", 0, 300, (0, 300), step=10)
 
     st.markdown("---")
@@ -524,10 +520,11 @@ with tab5:
             fig_sig.add_vline(x=city_med_ppm2, line_dash="dot", line_color=zero, line_width=1)
             fig_sig.add_hline(y=avg_momentum,  line_dash="dot", line_color=zero, line_width=1)
 
+            label_color = "#F1F5F9" if is_dark() else "#0F172A"
             fig_sig.add_trace(go.Scatter(
                 x=sig_df["median_ppm2"], y=sig_df["momentum_pct"],
                 mode="markers+text", text=sig_df["ward"],
-                textposition="top center", textfont=dict(size=9),
+                textposition="top center", textfont=dict(size=9, color=label_color),
                 marker=dict(
                     size=np.sqrt(sig_df["n_transactions"]).clip(8, 28),
                     color=sig_df["value_score"],
@@ -547,6 +544,7 @@ with tab5:
 
             x_range = [sig_df["median_ppm2"].min() * 0.92, sig_df["median_ppm2"].max() * 1.05]
             y_range = [sig_df["momentum_pct"].min() - 1.5,  sig_df["momentum_pct"].max() + 2.5]
+            quadrant_color = "#94A3B8" if is_dark() else "#475569"
             for label, x_frac, y_frac in [
                 ("Rising Stars", 0.08, 0.92), ("Hot Market", 0.85, 0.92),
                 ("Undervalued",  0.08, 0.08), ("Cooling",    0.85, 0.08),
@@ -554,8 +552,8 @@ with tab5:
                 fig_sig.add_annotation(
                     x=x_range[0] + (x_range[1] - x_range[0]) * x_frac,
                     y=y_range[0] + (y_range[1] - y_range[0]) * y_frac,
-                    text=label, showarrow=False,
-                    font=dict(size=10, color=zero),
+                    text=f"<b>{label}</b>", showarrow=False,
+                    font=dict(size=11, color=quadrant_color),
                 )
 
             fig_sig.update_layout(
@@ -573,6 +571,19 @@ with tab5:
             section_title("Most bearish")
             for _, row in sig_df[sig_df["momentum_pct"] < 0].sort_values("momentum_pct").head(3).iterrows():
                 kpi_card(row["ward"], f"{row['momentum_pct']:+.1f}%", "YoY momentum")
+
+        top_play   = sig_df.iloc[0]
+        hot_market = sig_df.sort_values("momentum_pct", ascending=False).iloc[0]
+        bearish    = sig_df.sort_values("momentum_pct").iloc[0]
+        callout(
+            f"<strong>Reading the dashboard:</strong> "
+            f"<strong>{top_play['ward']}</strong> leads the value rankings ({top_play['signal']}, score {top_play['value_score']:.0f}) — "
+            f"rising momentum without yet pricing in like central wards. "
+            f"<strong>{hot_market['ward']}</strong> shows the steepest momentum (+{hot_market['momentum_pct']:.1f}% YoY) "
+            f"but is already expensive. <strong>{bearish['ward']}</strong> is the only ward with negative momentum "
+            f"({bearish['momentum_pct']:+.1f}%) — possible cooling or sample-driven noise. "
+            f"The dotted lines mark the citywide median ¥/m² and average momentum, defining the four quadrants."
+        )
     else:
         st.info("Investment signals require at least 2 years of data.")
 
@@ -614,6 +625,7 @@ with tab5:
                     text=top_nb.sort_values("median_ppm2")["median_ppm2"].apply(lambda x: f"¥{x/10000:.0f}万"),
                 )
                 fig_nb.update_traces(textposition="outside",
+                                    textfont=dict(color="#F1F5F9" if is_dark() else "#0F172A"),
                                     hovertemplate="%{y}<br>¥/m²: %{x:,.0f}<extra></extra>")
                 fig_nb.update_layout(**base)
                 fig_nb.update_coloraxes(showscale=False)
@@ -675,6 +687,7 @@ with tab5:
                 labels={"premium_pct": "Premium vs city median (%)", "structure": ""},
             )
             fig_struct.update_traces(textposition="outside",
+                                    textfont=dict(color="#F1F5F9" if is_dark() else "#0F172A"),
                                     hovertemplate="%{y}<br>Premium: %{x:+.1f}%<extra></extra>")
             fig_struct.update_layout(**base)
             fig_struct.update_coloraxes(showscale=False)
@@ -699,6 +712,7 @@ with tab5:
                     labels={"premium_pct": "Premium (%)", "direction": ""},
                 )
                 fig_dir.update_traces(textposition="outside",
+                                     textfont=dict(color="#F1F5F9" if is_dark() else "#0F172A"),
                                      hovertemplate="%{y}<br>Premium: %{x:+.1f}%<extra></extra>")
                 fig_dir.update_layout(**base2)
                 fig_dir.update_coloraxes(showscale=False)
