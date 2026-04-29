@@ -608,6 +608,7 @@ def nav_sidebar() -> None:
     with st.sidebar:
         st.page_link("app.py", label="Japan RE Intelligence", icon="🗾", use_container_width=True)
         st.markdown("<hr style='margin:0.35rem 0 0.7rem; border-color:var(--border);'>", unsafe_allow_html=True)
+        st.page_link("pages/0_Japan_Overview.py",   label="Japan Overview",  icon="🗾")
         st.page_link("pages/1_City_Comparison.py",  label="City Comparison", icon="🏙️")
         st.page_link("pages/2_Tokyo_Deep_Dive.py",  label="Tokyo Deep Dive", icon="🗼")
         st.markdown("<hr style='margin:0.75rem 0; border-color:var(--border);'>", unsafe_allow_html=True)
