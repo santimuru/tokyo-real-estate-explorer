@@ -25,8 +25,6 @@ st.set_page_config(
 )
 inject_css()
 nav_sidebar()
-platform_hero()
-feature_cards()
 
 # ── Sidebar — info note only ───────────────────────────────────────────────────
 with st.sidebar:
@@ -60,13 +58,21 @@ PRICE_COLS = {2015: "price_ppm2_2015", 2019: "price_ppm2_2019", 2024: "price_ppm
 
 
 # ── Tabs ───────────────────────────────────────────────────────────────────────
-tab_map, tab_demo, tab_akiya, tab_about = st.tabs([
-    "🗺️ Price Map", "📊 Demographics", "🏚️ Akiya Crisis", "ℹ️ About",
+tab_intro, tab_map, tab_demo, tab_akiya, tab_about = st.tabs([
+    "🏠 Introduction", "🗺️ Price Map", "📊 Demographics", "🏚️ Akiya Crisis", "ℹ️ About",
 ])
 
 
 # ══════════════════════════════════════════════════════════════════════
-# TAB 1 — PRICE MAP
+# TAB 1 — INTRODUCTION
+# ══════════════════════════════════════════════════════════════════════
+with tab_intro:
+    platform_hero()
+    feature_cards()
+
+
+# ══════════════════════════════════════════════════════════════════════
+# TAB 2 — PRICE MAP
 # ══════════════════════════════════════════════════════════════════════
 with tab_map:
     page_header(
