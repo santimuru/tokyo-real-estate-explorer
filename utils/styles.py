@@ -3,6 +3,27 @@ from __future__ import annotations
 import streamlit as st
 
 
+def get_theme() -> str:
+    try:
+        return st.get_option("theme.base") or "light"
+    except Exception:
+        return "light"
+
+
+def plotly_defaults(height: int = 400) -> tuple[dict, str]:
+    """Return (base_layout_dict, grid_color) for transparent, theme-aware Plotly charts."""
+    dark = get_theme() == "dark"
+    layout = dict(
+        plot_bgcolor="rgba(0,0,0,0)",
+        paper_bgcolor="rgba(0,0,0,0)",
+        height=height,
+        font=dict(color="#f0f0f0" if dark else "#1a1a1a"),
+        margin=dict(l=10, r=10, t=10, b=10),
+    )
+    grid_color = "#3a3a3a" if dark else "#eee"
+    return layout, grid_color
+
+
 def inject_css() -> None:
     st.markdown("""
 <style>
@@ -17,15 +38,15 @@ def inject_css() -> None:
     :root {
         --accent:       #177e89;
         --accent-dark:  #0d2b2e;
-        --surface:      #f7f9fa;
-        --surface-2:    #f0f9fa;
-        --border:       #e0e0e0;
+        --surface:      rgba(247,249,250,1);
+        --surface-2:    rgba(23,126,137,0.08);
+        --border:       rgba(0,0,0,0.10);
         --text-primary: #1a1a1a;
         --text-muted:   #666;
         --text-sub:     #94A3B8;
     }
 
-    /* ── Dark mode overrides ── */
+    /* ── Dark mode — OS preference ── */
     @media (prefers-color-scheme: dark) {
         :root {
             --surface:      rgba(255,255,255,0.05);
@@ -37,7 +58,17 @@ def inject_css() -> None:
         }
     }
 
-    /* ── Hero banner (always dark — works in both modes) ── */
+    /* ── Dark mode — Streamlit theme toggle ── */
+    [data-theme="dark"] {
+        --surface:      rgba(255,255,255,0.05);
+        --surface-2:    rgba(23,126,137,0.15);
+        --border:       rgba(255,255,255,0.12);
+        --text-primary: #f0f0f0;
+        --text-muted:   #aaa;
+        --text-sub:     #888;
+    }
+
+    /* ── Hero banner (always dark — decorative) ── */
     .hero-banner {
         background: linear-gradient(135deg, #0d2b2e 0%, #177e89 65%, #1a9aaa 100%);
         border-radius: 12px;
@@ -149,6 +180,24 @@ def inject_css() -> None:
         margin-top: 2px;
     }
 
+    /* ── Info card (sidebar data source, etc.) ── */
+    .info-card {
+        background: var(--surface);
+        border-radius: 8px;
+        padding: 0.75rem 1rem;
+        font-size: 0.78rem;
+        color: var(--text-primary);
+    }
+    .info-card .card-title {
+        font-weight: 700;
+        color: var(--accent);
+        margin-bottom: 0.3rem;
+    }
+    .info-card .card-body {
+        color: var(--text-muted);
+        line-height: 1.5;
+    }
+
     /* ── Footer ── */
     .app-footer {
         margin-top: 3rem;
@@ -165,7 +214,6 @@ def inject_css() -> None:
 
 
 def kpi_card(label: str, value: str, sub: str = "") -> None:
-    """Render an HTML KPI card."""
     sub_html = f'<div class="kpi-sub">{sub}</div>' if sub else ""
     st.markdown(
         f'<div class="kpi-card"><div class="kpi-label">{label}</div>'

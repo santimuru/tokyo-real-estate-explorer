@@ -11,7 +11,7 @@ import streamlit as st
 
 from utils.data_loader import load_city_data, MAJOR_CITIES
 from utils.analytics import price_trend, format_jpy, format_ppm2
-from utils.styles import inject_css, kpi_card
+from utils.styles import inject_css, kpi_card, plotly_defaults
 
 st.set_page_config(page_title="City Comparison · Japan RE", page_icon="🏙️", layout="wide")
 inject_css()
@@ -156,14 +156,11 @@ fig_trend = px.line(
     labels={"tx_period": "", "median_ppm2": "Median ¥/m²", "city_name": "City"},
     color_discrete_sequence=CITY_COLORS,
 )
-fig_trend.update_layout(
-    plot_bgcolor="white",
-    height=360,
-    margin=dict(l=10, r=10, t=10, b=10),
-    legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
-)
+_layout, _grid = plotly_defaults(360)
+fig_trend.update_layout(**_layout,
+    legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1))
 fig_trend.update_xaxes(showgrid=False, tickangle=-30)
-fig_trend.update_yaxes(gridcolor="#eee", tickformat=",.0f")
+fig_trend.update_yaxes(gridcolor=_grid, tickformat=",.0f")
 st.plotly_chart(fig_trend, use_container_width=True)
 
 
@@ -191,13 +188,9 @@ with col_left:
         color_continuous_scale=["#84cdd4", "#177e89", "#0d2b2e"],
         labels={"median_ppm2": "¥/m²", "city": ""},
     )
-    fig_bar.update_layout(
-        plot_bgcolor="white",
-        height=300,
-        margin=dict(l=10, r=10, t=10, b=10),
-        coloraxis_showscale=False,
-    )
-    fig_bar.update_xaxes(gridcolor="#eee", tickformat=",.0f")
+    _layout, _grid = plotly_defaults(300)
+    fig_bar.update_layout(**_layout, coloraxis_showscale=False)
+    fig_bar.update_xaxes(gridcolor=_grid, tickformat=",.0f")
     st.plotly_chart(fig_bar, use_container_width=True)
 
 with col_right:
@@ -221,13 +214,10 @@ with col_right:
         labels={"share": "Share", "city": "", "property_type": ""},
         color_discrete_sequence=["#177e89", "#f39c12", "#e74c3c", "#8e44ad"],
     )
-    fig_type.update_layout(
-        plot_bgcolor="white",
-        height=300,
-        margin=dict(l=10, r=10, t=10, b=10),
-        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
-    )
-    fig_type.update_xaxes(gridcolor="#eee", tickformat=".0%")
+    _layout, _grid = plotly_defaults(300)
+    fig_type.update_layout(**_layout,
+        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1))
+    fig_type.update_xaxes(gridcolor=_grid, tickformat=".0%")
     st.plotly_chart(fig_type, use_container_width=True)
 
 

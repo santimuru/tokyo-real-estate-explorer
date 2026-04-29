@@ -28,7 +28,7 @@ from utils.analytics import (
     format_jpy,
     format_ppm2,
 )
-from utils.styles import inject_css, kpi_card
+from utils.styles import inject_css, kpi_card, plotly_defaults, get_theme
 
 st.set_page_config(
     page_title="Tokyo Deep Dive · Japan RE",
@@ -112,9 +112,9 @@ with st.sidebar:
     st.markdown("---")
     source_icon = "🟢" if is_live else "🟡"
     st.markdown(f"""
-    <div style='background:#f7f9fa; border-radius:8px; padding:0.75rem 1rem; font-size:0.78rem;'>
-        <div style='font-weight:700; color:#1a1a1a; margin-bottom:0.3rem;'>{source_icon} Data Source</div>
-        <div style='color:#555; line-height:1.5;'>{_source_label}</div>
+    <div class="info-card">
+        <div class="card-title">{source_icon} Data Source</div>
+        <div class="card-body">{_source_label}</div>
     </div>
     """, unsafe_allow_html=True)
 
@@ -209,7 +209,7 @@ with tab1:
         deck = pdk.Deck(
             layers=[layer],
             initial_view_state=pdk.ViewState(latitude=35.685, longitude=139.75, zoom=10.2, pitch=0),
-            map_style="light",
+            map_style="dark" if get_theme() == "dark" else "light",
             tooltip={
                 "html": (
                     "<b>{ward}</b> ({ward_ja})<br/>"
@@ -286,12 +286,10 @@ with tab2:
         line_color="#177e89", line_width=2.5,
         fillcolor="rgba(23, 126, 137, 0.1)",
     )
-    fig_area.update_layout(
-        plot_bgcolor="white", height=300,
-        margin=dict(l=10, r=10, t=10, b=10),
-    )
+    _layout, _grid = plotly_defaults(300)
+    fig_area.update_layout(**_layout)
     fig_area.update_xaxes(showgrid=False, tickangle=-30)
-    fig_area.update_yaxes(gridcolor="#eee", tickformat=",.0f")
+    fig_area.update_yaxes(gridcolor=_grid, tickformat=",.0f")
     st.plotly_chart(fig_area, use_container_width=True)
 
     st.markdown("---")
@@ -308,17 +306,14 @@ with tab2:
             yoy_df, x="yoy", y="ward",
             orientation="h",
             color="yoy",
-            color_continuous_scale=["#e74c3c", "#f5b7b1", "#d5f5e3", "#177e89"],
+            color_continuous_scale=["#e74c3c", "#888888", "#177e89"],
             color_continuous_midpoint=0,
             labels={"yoy": "YoY growth (%)", "ward": ""},
         )
-        fig_yoy.update_layout(
-            plot_bgcolor="white", height=520,
-            margin=dict(l=10, r=10, t=10, b=10),
-            coloraxis_showscale=False,
-        )
-        fig_yoy.update_xaxes(gridcolor="#eee", ticksuffix="%")
-        fig_yoy.add_vline(x=0, line_dash="dot", line_color="#bbb", line_width=1)
+        _layout, _grid = plotly_defaults(520)
+        fig_yoy.update_layout(**_layout, coloraxis_showscale=False)
+        fig_yoy.update_xaxes(gridcolor=_grid, ticksuffix="%")
+        fig_yoy.add_vline(x=0, line_dash="dot", line_color=_grid, line_width=1)
         st.plotly_chart(fig_yoy, use_container_width=True)
 
     with c2:
@@ -336,13 +331,11 @@ with tab2:
             labels={"tx_period": "", "median_ppm2": "¥/m²", "property_type": ""},
             color_discrete_sequence=["#177e89", "#f39c12", "#e74c3c", "#8e44ad"],
         )
-        fig_pt.update_layout(
-            plot_bgcolor="white", height=270,
-            margin=dict(l=10, r=10, t=10, b=10),
-            legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
-        )
+        _layout, _grid = plotly_defaults(270)
+        fig_pt.update_layout(**_layout,
+            legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1))
         fig_pt.update_xaxes(showgrid=False, tickangle=-30)
-        fig_pt.update_yaxes(gridcolor="#eee", tickformat=",.0f")
+        fig_pt.update_yaxes(gridcolor=_grid, tickformat=",.0f")
         st.plotly_chart(fig_pt, use_container_width=True)
 
         st.markdown("**Ward × year price heatmap** (median ¥/m²)")
@@ -358,11 +351,9 @@ with tab2:
             labels={"color": "¥/m²", "x": "", "y": ""},
             aspect="auto",
         )
-        fig_heat.update_layout(
-            height=520,
-            margin=dict(l=10, r=10, t=10, b=10),
-            coloraxis_colorbar=dict(title="¥/m²", tickformat=",.0f"),
-        )
+        _layout, _ = plotly_defaults(520)
+        fig_heat.update_layout(**_layout,
+            coloraxis_colorbar=dict(title="¥/m²", tickformat=",.0f"))
         fig_heat.update_xaxes(side="bottom")
         st.plotly_chart(fig_heat, use_container_width=True)
 
@@ -426,13 +417,10 @@ with tab3:
             color_discrete_sequence=["#177e89"],
             labels={"trade_price_jpy": "Trade price (JPY)", "count": ""},
         )
-        fig.update_layout(
-            plot_bgcolor="white", height=300,
-            margin=dict(l=10, r=10, t=10, b=10),
-            bargap=0.05,
-        )
+        _layout, _grid = plotly_defaults(300)
+        fig.update_layout(**_layout, bargap=0.05)
         fig.update_xaxes(tickformat=".2s")
-        fig.update_yaxes(gridcolor="#eee")
+        fig.update_yaxes(gridcolor=_grid)
         st.plotly_chart(fig, use_container_width=True)
 
     with r1c2:
@@ -445,13 +433,11 @@ with tab3:
             color_discrete_sequence=["#177e89", "#f39c12", "#e74c3c", "#8e44ad"],
             labels={"area_m2": "Area (m²)", "price_per_m2_jpy": "¥/m²", "property_type": ""},
         )
-        fig.update_layout(
-            plot_bgcolor="white", height=300,
-            margin=dict(l=10, r=10, t=10, b=10),
-            legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
-        )
-        fig.update_yaxes(gridcolor="#eee", tickformat=",.0f")
-        fig.update_xaxes(gridcolor="#eee")
+        _layout, _grid = plotly_defaults(300)
+        fig.update_layout(**_layout,
+            legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1))
+        fig.update_yaxes(gridcolor=_grid, tickformat=",.0f")
+        fig.update_xaxes(gridcolor=_grid)
         st.plotly_chart(fig, use_container_width=True)
 
     r2c1, r2c2 = st.columns(2)
@@ -466,12 +452,10 @@ with tab3:
                 labels={"tx_period": "", "median_ppm2": "¥/m²"},
             )
             fig.update_traces(line_color="#177e89", line_width=3, marker_size=8)
-            fig.update_layout(
-                plot_bgcolor="white", height=300,
-                margin=dict(l=10, r=10, t=10, b=10),
-            )
+            _layout, _grid = plotly_defaults(300)
+            fig.update_layout(**_layout)
             fig.update_xaxes(showgrid=False, tickangle=-30)
-            fig.update_yaxes(gridcolor="#eee", tickformat=",.0f")
+            fig.update_yaxes(gridcolor=_grid, tickformat=",.0f")
             st.plotly_chart(fig, use_container_width=True)
 
     with r2c2:
@@ -487,12 +471,9 @@ with tab3:
                 color_continuous_scale=["#b8e0e5", "#177e89", "#0d4d55"],
                 labels={"n": "Transactions", "layout": ""},
             )
-            fig.update_layout(
-                plot_bgcolor="white", height=300,
-                margin=dict(l=10, r=10, t=10, b=10),
-                coloraxis_showscale=False,
-            )
-            fig.update_xaxes(gridcolor="#eee")
+            _layout, _grid = plotly_defaults(300)
+            fig.update_layout(**_layout, coloraxis_showscale=False)
+            fig.update_xaxes(gridcolor=_grid)
             st.plotly_chart(fig, use_container_width=True)
         else:
             st.info("No layout data available for this ward with current filters.")
@@ -597,13 +578,11 @@ with tab4:
             showlegend=False,
             hovertemplate="Median: ¥%{x:,.0f}<extra></extra>",
         ))
-        fig_range.update_layout(
-            height=180,
+        _layout, _ = plotly_defaults(180)
+        fig_range.update_layout(**_layout,
             margin=dict(l=10, r=10, t=40, b=20),
-            plot_bgcolor="white",
             xaxis_title="Price (JPY)",
-            xaxis_tickformat=",.0f",
-        )
+            xaxis_tickformat=",.0f")
         st.plotly_chart(fig_range, use_container_width=True)
 
 
@@ -679,14 +658,12 @@ with tab5:
                     font=dict(size=10, color="rgba(100,100,100,0.6)"),
                 )
 
-            fig_sig.update_layout(
-                height=480,
-                plot_bgcolor="white",
+            _layout, _grid = plotly_defaults(480)
+            fig_sig.update_layout(**_layout,
                 margin=dict(l=10, r=10, t=20, b=40),
-                xaxis=dict(title="Median ¥/m²", gridcolor="#eee", tickformat=",.0f"),
-                yaxis=dict(title="YoY Momentum (%)", gridcolor="#eee", ticksuffix="%"),
-                showlegend=False,
-            )
+                xaxis=dict(title="Median ¥/m²", gridcolor=_grid, tickformat=",.0f"),
+                yaxis=dict(title="YoY Momentum (%)", gridcolor=_grid, ticksuffix="%"),
+                showlegend=False)
             st.plotly_chart(fig_sig, use_container_width=True)
 
         with top_col:
@@ -742,13 +719,9 @@ with tab5:
                     ),
                 )
                 fig_nb.update_traces(textposition="outside")
-                fig_nb.update_layout(
-                    height=max(350, len(top_nb) * 24),
-                    plot_bgcolor="white",
-                    margin=dict(l=10, r=10, t=10, b=10),
-                    coloraxis_showscale=False,
-                )
-                fig_nb.update_xaxes(gridcolor="#eee", tickformat=",.0f")
+                _layout, _grid = plotly_defaults(max(350, len(top_nb) * 24))
+                fig_nb.update_layout(**_layout, coloraxis_showscale=False)
+                fig_nb.update_xaxes(gridcolor=_grid, tickformat=",.0f")
                 st.plotly_chart(fig_nb, use_container_width=True)
             with nb_col2:
                 if len(nb_df) >= 2:
@@ -808,7 +781,7 @@ with tab5:
                 x="premium_pct", y="structure",
                 orientation="h",
                 color="premium_pct",
-                color_continuous_scale=["#e74c3c", "#f5f5f5", "#177e89"],
+                color_continuous_scale=["#e74c3c", "#888888", "#177e89"],
                 color_continuous_midpoint=0,
                 text=struct_df.sort_values("premium_pct")["premium_pct"].apply(
                     lambda x: f"{x:+.1f}%"
@@ -817,13 +790,10 @@ with tab5:
                 hover_data={"median_ppm2": True, "n_transactions": True, "median_age": True},
             )
             fig_struct.update_traces(textposition="outside")
-            fig_struct.update_layout(
-                height=280, plot_bgcolor="white",
-                margin=dict(l=10, r=10, t=10, b=10),
-                coloraxis_showscale=False,
-            )
-            fig_struct.add_vline(x=0, line_dash="dot", line_color="#bbb", line_width=1)
-            fig_struct.update_xaxes(gridcolor="#eee", ticksuffix="%")
+            _layout, _grid = plotly_defaults(280)
+            fig_struct.update_layout(**_layout, coloraxis_showscale=False)
+            fig_struct.add_vline(x=0, line_dash="dot", line_color=_grid, line_width=1)
+            fig_struct.update_xaxes(gridcolor=_grid, ticksuffix="%")
             st.plotly_chart(fig_struct, use_container_width=True)
 
         dna_c1, dna_c2 = st.columns(2)
@@ -837,7 +807,7 @@ with tab5:
                     x="premium_pct", y="direction",
                     orientation="h",
                     color="premium_pct",
-                    color_continuous_scale=["#e74c3c", "#f5f5f5", "#177e89"],
+                    color_continuous_scale=["#e74c3c", "#888888", "#177e89"],
                     color_continuous_midpoint=0,
                     text=dir_df.sort_values("premium_pct")["premium_pct"].apply(
                         lambda x: f"{x:+.1f}%"
@@ -845,13 +815,10 @@ with tab5:
                     labels={"premium_pct": "Premium (%)", "direction": ""},
                 )
                 fig_dir.update_traces(textposition="outside")
-                fig_dir.update_layout(
-                    height=320, plot_bgcolor="white",
-                    margin=dict(l=10, r=10, t=10, b=10),
-                    coloraxis_showscale=False,
-                )
-                fig_dir.add_vline(x=0, line_dash="dot", line_color="#bbb", line_width=1)
-                fig_dir.update_xaxes(gridcolor="#eee", ticksuffix="%")
+                _layout, _grid = plotly_defaults(320)
+                fig_dir.update_layout(**_layout, coloraxis_showscale=False)
+                fig_dir.add_vline(x=0, line_dash="dot", line_color=_grid, line_width=1)
+                fig_dir.update_xaxes(gridcolor=_grid, ticksuffix="%")
                 st.plotly_chart(fig_dir, use_container_width=True)
             else:
                 st.info("Not enough direction data in current selection.")
@@ -872,16 +839,15 @@ with tab5:
                     text=[f"¥{v/10000:.0f}万/m²" for v in renov_vals],
                     textposition="outside",
                 ))
-                fig_renov.update_layout(
-                    height=320, plot_bgcolor="white",
+                _layout, _grid = plotly_defaults(320)
+                fig_renov.update_layout(**_layout,
                     margin=dict(l=10, r=10, t=50, b=10),
-                    yaxis=dict(gridcolor="#eee", tickformat=",.0f"),
+                    yaxis=dict(gridcolor=_grid, tickformat=",.0f"),
                     title=dict(
                         text=f"Renovation adds <b>{renov['premium_pct']:+.1f}%</b> to price/m²",
                         font=dict(size=13), x=0.5,
                     ),
-                    showlegend=False,
-                )
+                    showlegend=False)
                 st.plotly_chart(fig_renov, use_container_width=True)
             else:
                 st.info("Not enough renovation data in current selection.")

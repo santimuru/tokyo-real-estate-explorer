@@ -10,7 +10,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 import streamlit as st
 
-from utils.styles import inject_css, kpi_card
+from utils.styles import inject_css, kpi_card, plotly_defaults
 from utils.prefecture_data import get_all_as_df, NATIONAL_AVG_PPM2
 
 st.set_page_config(
@@ -200,17 +200,14 @@ elif section == "Depopulation & Prices":
         hover_name="name_en",
         hover_data={"name_en": False, "pop_change_pct": ":.1f", "price_change_pct": ":.1f"},
     )
+    _layout, _grid = plotly_defaults(480)
     fig_scatter.update_traces(textposition="top center", textfont_size=9)
-    fig_scatter.update_layout(
-        plot_bgcolor="white",
-        height=480,
-        margin=dict(l=10, r=10, t=20, b=10),
-        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
-    )
-    fig_scatter.update_xaxes(gridcolor="#eee", zeroline=True, zerolinecolor="#ccc", ticksuffix="%")
-    fig_scatter.update_yaxes(gridcolor="#eee", zeroline=True, zerolinecolor="#ccc", ticksuffix="%")
-    fig_scatter.add_hline(y=0, line_dash="dot", line_color="#ddd")
-    fig_scatter.add_vline(x=0, line_dash="dot", line_color="#ddd")
+    fig_scatter.update_layout(**_layout, margin=dict(l=10, r=10, t=20, b=10),
+        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1))
+    fig_scatter.update_xaxes(gridcolor=_grid, zeroline=True, zerolinecolor=_grid, ticksuffix="%")
+    fig_scatter.update_yaxes(gridcolor=_grid, zeroline=True, zerolinecolor=_grid, ticksuffix="%")
+    fig_scatter.add_hline(y=0, line_dash="dot", line_color=_grid)
+    fig_scatter.add_vline(x=0, line_dash="dot", line_color=_grid)
     st.plotly_chart(fig_scatter, use_container_width=True)
 
     # Top 10 price growth bar
@@ -225,13 +222,9 @@ elif section == "Depopulation & Prices":
         color_discrete_map={True: "#177e89", False: "#84cdd4"},
         labels={"price_change_pct": "Price growth (%)", "name_en": "", "is_major_metro": "Major metro"},
     )
-    fig_bar.update_layout(
-        plot_bgcolor="white",
-        height=350,
-        margin=dict(l=10, r=10, t=10, b=10),
-        showlegend=False,
-    )
-    fig_bar.update_xaxes(gridcolor="#eee", ticksuffix="%")
+    _layout, _grid = plotly_defaults(350)
+    fig_bar.update_layout(**_layout, showlegend=False)
+    fig_bar.update_xaxes(gridcolor=_grid, ticksuffix="%")
     st.plotly_chart(fig_bar, use_container_width=True)
 
 
@@ -306,13 +299,9 @@ elif section == "Akiya Crisis":
             color_continuous_scale=["#fde8b0", "#f39c12", "#c0392b"],
             labels={"akiya_rate_2023": "Vacancy rate (%)", "name_en": ""},
         )
-        fig_vac.update_layout(
-            plot_bgcolor="white",
-            height=460,
-            margin=dict(l=10, r=10, t=10, b=10),
-            coloraxis_showscale=False,
-        )
-        fig_vac.update_xaxes(gridcolor="#eee", ticksuffix="%")
+        _layout, _grid = plotly_defaults(460)
+        fig_vac.update_layout(**_layout, coloraxis_showscale=False)
+        fig_vac.update_xaxes(gridcolor=_grid, ticksuffix="%")
         st.plotly_chart(fig_vac, use_container_width=True)
 
     # Regional vacancy trend
@@ -332,14 +321,11 @@ elif section == "Akiya Crisis":
         markers=True,
         labels={"year": "", "akiya_rate": "Avg vacancy rate (%)", "region": "Region"},
     )
-    fig_trend.update_layout(
-        plot_bgcolor="white",
-        height=320,
-        margin=dict(l=10, r=10, t=10, b=10),
-        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
-    )
+    _layout, _grid = plotly_defaults(320)
+    fig_trend.update_layout(**_layout,
+        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1))
     fig_trend.update_xaxes(showgrid=False, tickvals=[2013, 2018, 2023])
-    fig_trend.update_yaxes(gridcolor="#eee", ticksuffix="%")
+    fig_trend.update_yaxes(gridcolor=_grid, ticksuffix="%")
     st.plotly_chart(fig_trend, use_container_width=True)
 
 
