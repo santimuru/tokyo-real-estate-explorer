@@ -3,6 +3,8 @@ from __future__ import annotations
 import streamlit as st
 
 
+# ── Theme detection ────────────────────────────────────────────────────────────
+
 def get_theme() -> str:
     try:
         return st.get_option("theme.base") or "light"
@@ -10,213 +12,346 @@ def get_theme() -> str:
         return "light"
 
 
-def plotly_defaults(height: int = 400) -> tuple[dict, str]:
-    """Return (base_layout_dict, grid_color) for transparent, theme-aware Plotly charts."""
-    dark = get_theme() == "dark"
-    layout = dict(
-        plot_bgcolor="rgba(0,0,0,0)",
-        paper_bgcolor="rgba(0,0,0,0)",
-        height=height,
-        font=dict(color="#f0f0f0" if dark else "#1a1a1a"),
-        margin=dict(l=10, r=10, t=10, b=10),
-    )
-    grid_color = "#3a3a3a" if dark else "#eee"
-    return layout, grid_color
+def is_dark() -> bool:
+    return get_theme() == "dark"
 
+
+# ── Plotly helpers ─────────────────────────────────────────────────────────────
+
+def plotly_base(height: int = 420) -> tuple[dict, str, str]:
+    """Return (layout_dict, grid_color, zero_color) for a transparent Plotly chart."""
+    dark = is_dark()
+    font_color = "#F1F5F9" if dark else "#0F172A"
+    grid  = "#2D3748" if dark else "#E2E8F0"
+    zero  = "#4A5568" if dark else "#CBD5E0"
+    return (
+        dict(
+            plot_bgcolor="rgba(0,0,0,0)",
+            paper_bgcolor="rgba(0,0,0,0)",
+            height=height,
+            font=dict(color=font_color, family="Inter, sans-serif", size=12),
+            margin=dict(l=8, r=8, t=24, b=8),
+        ),
+        grid,
+        zero,
+    )
+
+
+def year_ticks(periods: list[str]) -> tuple[list[str], list[str]]:
+    """From a list of 'YYYY-Qn' strings, return tickvals/ticktext showing only years."""
+    vals, texts = [], []
+    seen: set[str] = set()
+    for p in sorted(set(periods)):
+        yr = p.split("-")[0]
+        if yr not in seen:
+            seen.add(yr)
+            vals.append(p)
+            texts.append(yr)
+    return vals, texts
+
+
+# ── CSS injection ──────────────────────────────────────────────────────────────
 
 def inject_css() -> None:
     st.markdown("""
 <style>
-    /* ── Layout ── */
-    .main .block-container {
-        padding-top: 0;
-        padding-bottom: 3rem;
-        max-width: 1400px;
-    }
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
-    /* ── CSS variables — light mode defaults ── */
+/* ── Reset & base ── */
+html, body, [class*="css"] {
+    font-family: 'Inter', sans-serif !important;
+}
+.main .block-container {
+    padding-top: 1.5rem;
+    padding-bottom: 3rem;
+    max-width: 1440px;
+}
+
+/* ── Design tokens — light ── */
+:root {
+    --accent:        #3B82F6;
+    --accent-dark:   #1D4ED8;
+    --accent-faint:  rgba(59,130,246,0.10);
+    --pos:           #10B981;
+    --neg:           #EF4444;
+    --surface:       #FFFFFF;
+    --surface-2:     #F8FAFC;
+    --surface-3:     #F1F5F9;
+    --border:        #E2E8F0;
+    --text-h:        #0F172A;
+    --text-body:     #334155;
+    --text-muted:    #64748B;
+    --text-faint:    #94A3B8;
+    --shadow:        0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.05);
+    --shadow-md:     0 4px 12px rgba(0,0,0,.08);
+}
+
+/* ── Dark mode — OS ── */
+@media (prefers-color-scheme: dark) {
     :root {
-        --accent:       #177e89;
-        --accent-dark:  #0d2b2e;
-        --surface:      rgba(247,249,250,1);
-        --surface-2:    rgba(23,126,137,0.08);
-        --border:       rgba(0,0,0,0.10);
-        --text-primary: #1a1a1a;
-        --text-muted:   #666;
-        --text-sub:     #94A3B8;
+        --accent-faint:  rgba(59,130,246,0.15);
+        --surface:       #1E293B;
+        --surface-2:     #0F172A;
+        --surface-3:     #273548;
+        --border:        #334155;
+        --text-h:        #F1F5F9;
+        --text-body:     #CBD5E0;
+        --text-muted:    #94A3B8;
+        --text-faint:    #64748B;
+        --shadow:        0 1px 3px rgba(0,0,0,.3);
+        --shadow-md:     0 4px 12px rgba(0,0,0,.4);
     }
+}
 
-    /* ── Dark mode — OS preference ── */
-    @media (prefers-color-scheme: dark) {
-        :root {
-            --surface:      rgba(255,255,255,0.05);
-            --surface-2:    rgba(23,126,137,0.15);
-            --border:       rgba(255,255,255,0.12);
-            --text-primary: #f0f0f0;
-            --text-muted:   #aaa;
-            --text-sub:     #888;
-        }
-    }
+/* ── Dark mode — Streamlit toggle ── */
+[data-theme="dark"] {
+    --accent-faint:  rgba(59,130,246,0.15);
+    --surface:       #1E293B;
+    --surface-2:     #0F172A;
+    --surface-3:     #273548;
+    --border:        #334155;
+    --text-h:        #F1F5F9;
+    --text-body:     #CBD5E0;
+    --text-muted:    #94A3B8;
+    --text-faint:    #64748B;
+    --shadow:        0 1px 3px rgba(0,0,0,.3);
+    --shadow-md:     0 4px 12px rgba(0,0,0,.4);
+}
 
-    /* ── Dark mode — Streamlit theme toggle ── */
-    [data-theme="dark"] {
-        --surface:      rgba(255,255,255,0.05);
-        --surface-2:    rgba(23,126,137,0.15);
-        --border:       rgba(255,255,255,0.12);
-        --text-primary: #f0f0f0;
-        --text-muted:   #aaa;
-        --text-sub:     #888;
-    }
+/* ── Page header ── */
+.page-header {
+    padding: 2rem 0 1.5rem;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 2rem;
+}
+.page-header-eyebrow {
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.10em;
+    color: var(--accent);
+    margin-bottom: 0.4rem;
+}
+.page-header-title {
+    font-size: 2.2rem;
+    font-weight: 800;
+    color: var(--text-h);
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+    margin-bottom: 0.6rem;
+}
+.page-header-desc {
+    font-size: 1rem;
+    color: var(--text-muted);
+    max-width: 680px;
+    line-height: 1.7;
+}
 
-    /* ── Hero banner (always dark — decorative) ── */
-    .hero-banner {
-        background: linear-gradient(135deg, #0d2b2e 0%, #177e89 65%, #1a9aaa 100%);
-        border-radius: 12px;
-        padding: 2.8rem 3rem;
-        color: white;
-        margin-bottom: 1.8rem;
-    }
-    .hero-title {
-        font-size: 2.6rem;
-        font-weight: 800;
-        letter-spacing: -0.02em;
-        color: white !important;
-    }
-    .hero-sub {
-        font-size: 1.05rem;
-        opacity: 0.88;
-        max-width: 720px;
-        line-height: 1.65;
-        color: white !important;
-    }
-    .badge {
-        display: inline-block;
-        background: rgba(255,255,255,0.15);
-        border: 1px solid rgba(255,255,255,0.35);
-        border-radius: 20px;
-        padding: 0.22rem 0.75rem;
-        font-size: 0.73rem;
-        font-weight: 600;
-        text-transform: uppercase;
-        margin-right: 0.4rem;
-        color: white !important;
-    }
-    .badge-live {
-        background: rgba(39,174,96,0.35);
-        border-color: rgba(39,174,96,0.7);
-    }
+/* ── Section header ── */
+.section-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text-h);
+    margin: 1.8rem 0 0.4rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.section-title::before {
+    content: '';
+    display: inline-block;
+    width: 3px;
+    height: 1.1em;
+    background: var(--accent);
+    border-radius: 2px;
+    flex-shrink: 0;
+}
+.section-sub {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin-bottom: 1rem;
+    line-height: 1.6;
+}
 
-    /* ── Metrics ── */
-    .stMetric {
-        background: var(--surface);
-        border-left: 3px solid var(--accent);
-        padding: 0.8rem 1rem;
-        border-radius: 4px;
-    }
-    .stMetric label {
-        font-size: 0.73rem !important;
-        text-transform: uppercase;
-        letter-spacing: 0.06em;
-        color: var(--text-muted) !important;
-    }
-    .stMetric [data-testid="stMetricValue"] {
-        font-size: 1.45rem !important;
-        color: var(--accent) !important;
-        font-weight: 700;
-    }
+/* ── Insight / callout box ── */
+.callout {
+    background: var(--accent-faint);
+    border-left: 3px solid var(--accent);
+    border-radius: 0 8px 8px 0;
+    padding: 0.85rem 1.1rem;
+    margin: 0.8rem 0 1.2rem;
+    font-size: 0.875rem;
+    color: var(--text-body);
+    line-height: 1.65;
+}
+.callout strong { color: var(--accent); }
+.callout-pos { border-left-color: var(--pos); background: rgba(16,185,129,.08); }
+.callout-pos strong { color: var(--pos); }
+.callout-neg { border-left-color: var(--neg); background: rgba(239,68,68,.08); }
+.callout-neg strong { color: var(--neg); }
 
-    /* ── Tabs ── */
-    .stTabs [data-baseweb="tab-list"] {
-        gap: 2rem;
-        border-bottom: 1px solid var(--border);
-    }
-    .stTabs [data-baseweb="tab"] {
-        font-size: 0.95rem;
-        font-weight: 600;
-    }
-    .stTabs [aria-selected="true"] {
-        color: var(--accent) !important;
-    }
+/* ── KPI cards ── */
+.kpi-row { display: flex; gap: 0.75rem; margin: 1rem 0 1.5rem; flex-wrap: wrap; }
+.kpi {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 0.9rem 1.1rem;
+    flex: 1;
+    min-width: 130px;
+    box-shadow: var(--shadow);
+}
+.kpi-label {
+    font-size: 0.70rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+    margin-bottom: 0.3rem;
+}
+.kpi-value {
+    font-size: 1.55rem;
+    font-weight: 700;
+    color: var(--text-h);
+    line-height: 1.15;
+}
+.kpi-value-accent { color: var(--accent); }
+.kpi-sub {
+    font-size: 0.75rem;
+    color: var(--text-faint);
+    margin-top: 0.2rem;
+}
 
-    /* ── Insight box ── */
-    .insight-box {
-        background: var(--surface-2);
-        border-left: 4px solid var(--accent);
-        border-radius: 0 8px 8px 0;
-        padding: 0.9rem 1.2rem;
-        margin: 1rem 0;
-        font-size: 0.88rem;
-        line-height: 1.65;
-        color: var(--text-primary);
-    }
-    .insight-box strong {
-        color: var(--accent);
-    }
+/* ── Streamlit metric overrides ── */
+.stMetric {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 0.85rem 1rem !important;
+    box-shadow: var(--shadow);
+}
+.stMetric label {
+    font-size: 0.70rem !important;
+    font-weight: 600 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.08em !important;
+    color: var(--text-muted) !important;
+}
+.stMetric [data-testid="stMetricValue"] {
+    font-size: 1.4rem !important;
+    font-weight: 700 !important;
+    color: var(--text-h) !important;
+}
 
-    /* ── KPI card ── */
-    .kpi-card {
-        background: var(--surface);
-        border-left: 4px solid var(--accent);
-        padding: 1rem 1.2rem;
-        border-radius: 6px;
-        margin-bottom: 0.5rem;
-    }
-    .kpi-label {
-        font-size: 0.78rem;
-        color: var(--text-muted);
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-    }
-    .kpi-value {
-        font-size: 1.6rem;
-        font-weight: 700;
-        color: var(--text-primary);
-        line-height: 1.2;
-    }
-    .kpi-sub {
-        font-size: 0.82rem;
-        color: var(--text-sub);
-        margin-top: 2px;
-    }
+/* ── Tabs ── */
+.stTabs [data-baseweb="tab-list"] {
+    gap: 0;
+    border-bottom: 2px solid var(--border);
+    background: transparent !important;
+}
+.stTabs [data-baseweb="tab"] {
+    font-size: 0.88rem;
+    font-weight: 600;
+    padding: 0.6rem 1.2rem;
+    color: var(--text-muted);
+    border-bottom: 2px solid transparent;
+    margin-bottom: -2px;
+}
+.stTabs [aria-selected="true"] {
+    color: var(--accent) !important;
+    border-bottom-color: var(--accent) !important;
+}
 
-    /* ── Info card (sidebar data source, etc.) ── */
-    .info-card {
-        background: var(--surface);
-        border-radius: 8px;
-        padding: 0.75rem 1rem;
-        font-size: 0.78rem;
-        color: var(--text-primary);
-    }
-    .info-card .card-title {
-        font-weight: 700;
-        color: var(--accent);
-        margin-bottom: 0.3rem;
-    }
-    .info-card .card-body {
-        color: var(--text-muted);
-        line-height: 1.5;
-    }
+/* ── Info badge (sidebar) ── */
+.info-badge {
+    background: var(--surface-3);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.6rem 0.8rem;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    line-height: 1.55;
+}
+.info-badge strong { color: var(--text-body); }
 
-    /* ── Footer ── */
-    .app-footer {
-        margin-top: 3rem;
-        padding-top: 1.5rem;
-        border-top: 1px solid var(--border);
-        color: var(--text-muted);
-        font-size: 0.78rem;
-        text-align: center;
-        line-height: 2;
-    }
-    .app-footer a { color: var(--accent); text-decoration: none; }
+/* ── Methodology box ── */
+.method-box {
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1rem 1.2rem;
+    font-size: 0.82rem;
+    color: var(--text-muted);
+    line-height: 1.7;
+    margin-top: 0.5rem;
+}
+.method-box h4 {
+    color: var(--text-body);
+    font-size: 0.82rem;
+    font-weight: 700;
+    margin: 0.8rem 0 0.3rem;
+}
+.method-box h4:first-child { margin-top: 0; }
+
+/* ── Footer ── */
+.app-footer {
+    margin-top: 4rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border);
+    font-size: 0.75rem;
+    color: var(--text-faint);
+    text-align: center;
+    line-height: 2;
+}
+.app-footer a { color: var(--accent); text-decoration: none; }
+.app-footer a:hover { text-decoration: underline; }
 </style>
 """, unsafe_allow_html=True)
 
 
-def kpi_card(label: str, value: str, sub: str = "") -> None:
+# ── Python component helpers ───────────────────────────────────────────────────
+
+def page_header(eyebrow: str, title: str, desc: str, badges: list[str] | None = None) -> None:
+    badge_html = ""
+    if badges:
+        for b in badges:
+            badge_html += f'<span style="display:inline-block;background:var(--accent-faint);color:var(--accent);border:1px solid var(--accent);border-radius:20px;padding:0.15rem 0.65rem;font-size:0.70rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;margin-right:0.4rem;">{b}</span>'
+    st.markdown(f"""
+<div class="page-header">
+    <div class="page-header-eyebrow">{eyebrow}</div>
+    <div class="page-header-title">{title}</div>
+    <div class="page-header-desc">{desc}</div>
+    {'<div style="margin-top:0.8rem;">' + badge_html + '</div>' if badge_html else ''}
+</div>
+""", unsafe_allow_html=True)
+
+
+def section_title(text: str, sub: str = "") -> None:
+    sub_html = f'<div class="section-sub">{sub}</div>' if sub else ""
+    st.markdown(f'<div class="section-title">{text}</div>{sub_html}', unsafe_allow_html=True)
+
+
+def callout(text: str, variant: str = "") -> None:
+    cls = f"callout callout-{variant}" if variant else "callout"
+    st.markdown(f'<div class="{cls}">{text}</div>', unsafe_allow_html=True)
+
+
+def kpi_card(label: str, value: str, sub: str = "", accent: bool = False) -> None:
+    val_cls = "kpi-value kpi-value-accent" if accent else "kpi-value"
     sub_html = f'<div class="kpi-sub">{sub}</div>' if sub else ""
     st.markdown(
-        f'<div class="kpi-card"><div class="kpi-label">{label}</div>'
-        f'<div class="kpi-value">{value}</div>{sub_html}</div>',
+        f'<div class="kpi"><div class="kpi-label">{label}</div>'
+        f'<div class="{val_cls}">{value}</div>{sub_html}</div>',
         unsafe_allow_html=True,
     )
+
+
+def footer(page_name: str, source: str = "MLIT Real Estate Information Library") -> None:
+    st.markdown(f"""
+<div class="app-footer">
+    <strong>Japan Real Estate Intelligence</strong> · {page_name} ·
+    Built by <a href="https://santimuru.github.io" target="_blank">Santiago Martinez</a> ·
+    <a href="https://github.com/santimuru/tokyo-real-estate-explorer" target="_blank">GitHub</a><br/>
+    Data: {source}
+</div>
+""", unsafe_allow_html=True)
