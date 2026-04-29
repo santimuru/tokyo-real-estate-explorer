@@ -9,7 +9,7 @@ import pandas as pd
 import plotly.express as px
 import streamlit as st
 
-from utils.styles import inject_css, page_header, section_title, callout, kpi_card, footer, plotly_base, nav_sidebar
+from utils.styles import inject_css, platform_hero, page_header, section_title, callout, kpi_card, footer, plotly_base, nav_sidebar
 from utils.prefecture_data import get_all_as_df, NATIONAL_AVG_PPM2
 
 st.set_page_config(
@@ -20,6 +20,7 @@ st.set_page_config(
 )
 inject_css()
 nav_sidebar()
+platform_hero()
 
 # ── Sidebar ────────────────────────────────────────────────────────────────────
 with st.sidebar:
@@ -103,7 +104,7 @@ if section == "Price Map":
         )
         fig_map.update_geos(fitbounds="locations", visible=False, bgcolor="rgba(0,0,0,0)")
         fig_map.update_layout(**base, coloraxis_colorbar=dict(title="¥/m²", tickformat=",.0f"))
-        st.plotly_chart(fig_map, use_container_width=True)
+        st.plotly_chart(fig_map, use_container_width=True, config={"scrollZoom": False})
     except Exception as exc:
         st.warning(f"Map unavailable: {exc}")
 
@@ -187,7 +188,7 @@ elif section == "Depopulation & Prices":
     fig_scatter.update_yaxes(gridcolor=grid, zeroline=True, zerolinecolor=zero, ticksuffix="%")
     fig_scatter.add_hline(y=0, line_dash="dot", line_color=zero)
     fig_scatter.add_vline(x=0, line_dash="dot", line_color=zero)
-    st.plotly_chart(fig_scatter, use_container_width=True)
+    st.plotly_chart(fig_scatter, use_container_width=True, config={"scrollZoom": False})
 
     # Insight derived from data
     most_surprising = df[~df["is_major_metro"]].nlargest(3, "price_change_pct")[["name_en", "price_change_pct"]]
@@ -211,7 +212,7 @@ elif section == "Depopulation & Prices":
     )
     fig_bar.update_layout(**base2, showlegend=False)
     fig_bar.update_xaxes(gridcolor=grid2, ticksuffix="%")
-    st.plotly_chart(fig_bar, use_container_width=True)
+    st.plotly_chart(fig_bar, use_container_width=True, config={"scrollZoom": False})
 
 
 # ══════════════════════════════════════════════════════════════════════
@@ -265,7 +266,7 @@ elif section == "Akiya Crisis":
             )
             fig_akiya.update_geos(fitbounds="locations", visible=False, bgcolor="rgba(0,0,0,0)")
             fig_akiya.update_layout(**base, coloraxis_colorbar=dict(title="Vacancy %", ticksuffix="%"))
-            st.plotly_chart(fig_akiya, use_container_width=True)
+            st.plotly_chart(fig_akiya, use_container_width=True, config={"scrollZoom": False})
     except Exception as exc:
         st.warning(f"Map unavailable: {exc}")
 
@@ -283,7 +284,7 @@ elif section == "Akiya Crisis":
         fig_vac.update_layout(**base3)
         fig_vac.update_coloraxes(showscale=False)
         fig_vac.update_xaxes(gridcolor=grid3, ticksuffix="%")
-        st.plotly_chart(fig_vac, use_container_width=True)
+        st.plotly_chart(fig_vac, use_container_width=True, config={"scrollZoom": False})
 
     section_title("Vacancy rate by region (2013 → 2018 → 2023)")
     trend_data = []
@@ -303,7 +304,7 @@ elif section == "Akiya Crisis":
     )
     fig_trend.update_xaxes(showgrid=False, tickvals=[2013, 2018, 2023])
     fig_trend.update_yaxes(gridcolor=grid4, ticksuffix="%")
-    st.plotly_chart(fig_trend, use_container_width=True)
+    st.plotly_chart(fig_trend, use_container_width=True, config={"scrollZoom": False})
 
 
 footer("Japan Overview", "MLIT XIT001 API · Japan Housing and Land Survey · Statistics Bureau")

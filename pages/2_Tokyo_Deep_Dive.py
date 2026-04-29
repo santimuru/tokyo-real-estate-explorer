@@ -163,6 +163,7 @@ with tab1:
             layers=[layer],
             initial_view_state=pdk.ViewState(latitude=35.685, longitude=139.75, zoom=10.2, pitch=0),
             map_style="dark" if get_theme() == "dark" else "light",
+            controller={"scrollZoom": False},
             tooltip={
                 "html": (
                     "<b>{ward}</b> ({ward_ja})<br/>"
@@ -232,7 +233,7 @@ with tab2:
     fig_area.update_layout(**base)
     fig_area.update_xaxes(tickvals=tick_vals, ticktext=tick_texts, showgrid=False)
     fig_area.update_yaxes(gridcolor=grid, tickformat=",.0f")
-    st.plotly_chart(fig_area, use_container_width=True)
+    st.plotly_chart(fig_area, use_container_width=True, config={"scrollZoom": False})
 
     st.markdown("---")
     c1, c2 = st.columns(2)
@@ -253,7 +254,7 @@ with tab2:
         fig_yoy.update_coloraxes(showscale=False)
         fig_yoy.update_xaxes(gridcolor=grid2, ticksuffix="%")
         fig_yoy.add_vline(x=0, line_dash="dot", line_color=zero2, line_width=1)
-        st.plotly_chart(fig_yoy, use_container_width=True)
+        st.plotly_chart(fig_yoy, use_container_width=True, config={"scrollZoom": False})
 
     with c2:
         section_title(
@@ -280,7 +281,7 @@ with tab2:
         )
         fig_pt.update_xaxes(tickvals=tv, ticktext=tt, showgrid=False)
         fig_pt.update_yaxes(gridcolor=grid3, tickformat=",.0f")
-        st.plotly_chart(fig_pt, use_container_width=True)
+        st.plotly_chart(fig_pt, use_container_width=True, config={"scrollZoom": False})
 
         section_title("Ward × year price heatmap", "Each cell = median ¥/m²")
         heat_df = (
@@ -297,7 +298,7 @@ with tab2:
         )
         fig_heat.update_layout(**base4, coloraxis_colorbar=dict(title="¥/m²", tickformat=",.0f"))
         fig_heat.update_xaxes(side="bottom", tickformat="d")
-        st.plotly_chart(fig_heat, use_container_width=True)
+        st.plotly_chart(fig_heat, use_container_width=True, config={"scrollZoom": False})
 
 
 # ══════════════════════════════════════════════════════════════════════
@@ -356,7 +357,7 @@ with tab3:
         fig.update_layout(**base, bargap=0.05)
         fig.update_xaxes(tickformat=".2s")
         fig.update_yaxes(gridcolor=grid)
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, use_container_width=True, config={"scrollZoom": False})
 
     with r1c2:
         section_title("Area vs ¥/m²", "Sample of up to 1,500 transactions · color by property type")
@@ -374,7 +375,7 @@ with tab3:
         )
         fig.update_yaxes(gridcolor=grid2, tickformat=",.0f")
         fig.update_xaxes(gridcolor=grid2)
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, use_container_width=True, config={"scrollZoom": False})
 
     r2c1, r2c2 = st.columns(2)
 
@@ -391,7 +392,7 @@ with tab3:
             fig.update_layout(**base3)
             fig.update_xaxes(tickvals=tv, ticktext=tt, showgrid=False)
             fig.update_yaxes(gridcolor=grid3, tickformat=",.0f")
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, use_container_width=True, config={"scrollZoom": False})
 
     with r2c2:
         section_title("Layout breakdown", "Transaction count by apartment layout type")
@@ -409,7 +410,7 @@ with tab3:
             fig.update_layout(**base4)
             fig.update_coloraxes(showscale=False)
             fig.update_xaxes(gridcolor=grid4)
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, use_container_width=True, config={"scrollZoom": False})
         else:
             st.info("No layout data available for this ward with current filters.")
 
@@ -494,7 +495,7 @@ with tab4:
             hovertemplate="Median: ¥%{x:,.0f}<extra></extra>",
         ))
         fig_range.update_layout(**base, margin=dict(l=8, r=8, t=40, b=8), xaxis_tickformat=",.0f")
-        st.plotly_chart(fig_range, use_container_width=True)
+        st.plotly_chart(fig_range, use_container_width=True, config={"scrollZoom": False})
 
 
 # ══════════════════════════════════════════════════════════════════════
@@ -563,7 +564,7 @@ with tab5:
                 xaxis=dict(title="Median ¥/m²", gridcolor=grid, tickformat=",.0f"),
                 yaxis=dict(title="YoY Momentum (%)", gridcolor=grid, ticksuffix="%"),
             )
-            st.plotly_chart(fig_sig, use_container_width=True)
+            st.plotly_chart(fig_sig, use_container_width=True, config={"scrollZoom": False})
 
         with top_col:
             section_title("Top value plays")
@@ -617,7 +618,7 @@ with tab5:
                 fig_nb.update_layout(**base)
                 fig_nb.update_coloraxes(showscale=False)
                 fig_nb.update_xaxes(gridcolor=grid, tickformat=",.0f")
-                st.plotly_chart(fig_nb, use_container_width=True)
+                st.plotly_chart(fig_nb, use_container_width=True, config={"scrollZoom": False})
             with nb_col2:
                 if len(nb_df) >= 2:
                     top_d, cheap_d = nb_df.iloc[0], nb_df.iloc[-1]
@@ -678,7 +679,7 @@ with tab5:
             fig_struct.update_coloraxes(showscale=False)
             fig_struct.add_vline(x=0, line_dash="dot", line_color=zero, line_width=1)
             fig_struct.update_xaxes(gridcolor=grid, ticksuffix="%")
-            st.plotly_chart(fig_struct, use_container_width=True)
+            st.plotly_chart(fig_struct, use_container_width=True, config={"scrollZoom": False})
 
         dna_c1, dna_c2 = st.columns(2)
 
@@ -701,7 +702,7 @@ with tab5:
                 fig_dir.update_coloraxes(showscale=False)
                 fig_dir.add_vline(x=0, line_dash="dot", line_color=zero2, line_width=1)
                 fig_dir.update_xaxes(gridcolor=grid2, ticksuffix="%")
-                st.plotly_chart(fig_dir, use_container_width=True)
+                st.plotly_chart(fig_dir, use_container_width=True, config={"scrollZoom": False})
 
         with dna_c2:
             renov = renovation_premium(df)
@@ -728,7 +729,7 @@ with tab5:
                     ),
                     showlegend=False,
                 )
-                st.plotly_chart(fig_renov, use_container_width=True)
+                st.plotly_chart(fig_renov, use_container_width=True, config={"scrollZoom": False})
 
 
 footer("Tokyo Deep Dive", f"{_source} · Last loaded: {datetime.now().strftime('%Y-%m-%d %H:%M')} UTC")

@@ -300,6 +300,89 @@ html, body, [class*="css"] {
 }
 .method-box h4:first-child { margin-top: 0; }
 
+/* ── Platform hero ── */
+.platform-hero {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 2.5rem 2.5rem 2rem;
+    margin-bottom: 2rem;
+    position: relative;
+    overflow: hidden;
+    box-shadow: var(--shadow-md);
+}
+.platform-hero::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #3B82F6, #8B5CF6, #10B981);
+}
+.ph-eyebrow {
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--accent);
+    margin-bottom: 0.5rem;
+}
+.ph-title {
+    font-size: 2.6rem;
+    font-weight: 800;
+    color: var(--text-h);
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+    margin: 0 0 0.8rem;
+}
+.ph-desc {
+    font-size: 1rem;
+    color: var(--text-muted);
+    max-width: 680px;
+    line-height: 1.7;
+    margin: 0 0 1.8rem;
+}
+.ph-stats {
+    display: flex;
+    gap: 2.5rem;
+    flex-wrap: wrap;
+    border-top: 1px solid var(--border);
+    padding-top: 1.2rem;
+}
+.ph-stat-n {
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: var(--accent);
+    line-height: 1;
+}
+.ph-stat-l {
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+    margin-top: 0.25rem;
+}
+
+/* ── Chart & data container borders ── */
+[data-testid="stPlotlyChart"] {
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--surface);
+    padding: 4px;
+    overflow: hidden;
+}
+[data-testid="stDeckGlJsonChart"],
+[data-testid="stPydeckChart"] {
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+}
+[data-testid="stDataFrame"] {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
 /* ── Footer ── */
 .app-footer {
     margin-top: 4rem;
@@ -351,6 +434,44 @@ def kpi_card(label: str, value: str, sub: str = "", accent: bool = False) -> Non
         f'<div class="{val_cls}">{value}</div>{sub_html}</div>',
         unsafe_allow_html=True,
     )
+
+
+def platform_hero() -> None:
+    """Full-width hero shown on the home page above all sections."""
+    st.markdown("""
+<div class="platform-hero">
+    <div class="ph-eyebrow">Portfolio Project &nbsp;·&nbsp; Python · Streamlit · Plotly · MLIT API</div>
+    <div class="ph-title">Japan Real Estate Intelligence</div>
+    <div class="ph-desc">
+        Transaction-level property data from Japan's Ministry of Land, Infrastructure, Transport and Tourism (MLIT)
+        — covering every prefecture in the country and every one of Tokyo's 23 special wards.
+        Explore national price maps, demographic trends, the akiya vacancy crisis,
+        and deep ward-level analytics including a k-NN price estimator and investment signal dashboard.
+    </div>
+    <div class="ph-stats">
+        <div>
+            <div class="ph-stat-n">47</div>
+            <div class="ph-stat-l">Prefectures</div>
+        </div>
+        <div>
+            <div class="ph-stat-n">23</div>
+            <div class="ph-stat-l">Tokyo Wards</div>
+        </div>
+        <div>
+            <div class="ph-stat-n">9M+</div>
+            <div class="ph-stat-l">Vacant Homes</div>
+        </div>
+        <div>
+            <div class="ph-stat-n">2015–24</div>
+            <div class="ph-stat-l">Data Range</div>
+        </div>
+        <div>
+            <div class="ph-stat-n">¥/m²</div>
+            <div class="ph-stat-l">Transaction Level</div>
+        </div>
+    </div>
+</div>
+""", unsafe_allow_html=True)
 
 
 def nav_sidebar() -> None:
