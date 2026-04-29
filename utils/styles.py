@@ -65,10 +65,11 @@ def inject_css() -> None:
 html, body, [class*="css"] {
     font-family: 'Inter', sans-serif !important;
 }
-/* Collapse Streamlit's default top toolbar height */
-[data-testid="stHeader"] { height: 0 !important; min-height: 0 !important; }
+/* Streamlit's default top toolbar — keep transparent but don't collapse to 0
+   (collapsing made Share/menu buttons overlap page content) */
+[data-testid="stHeader"] { background: transparent !important; }
 .main .block-container {
-    padding-top: 0.5rem !important;
+    padding-top: 2.5rem !important;
     padding-bottom: 3rem;
     max-width: 1440px;
 }

@@ -167,7 +167,6 @@ with tab1:
             layers=[layer],
             initial_view_state=pdk.ViewState(latitude=35.685, longitude=139.75, zoom=10.2, pitch=0),
             map_style="dark" if get_theme() == "dark" else "light",
-            controller=False,
             tooltip={
                 "html": (
                     "<b>{ward}</b> ({ward_ja})<br/>"
