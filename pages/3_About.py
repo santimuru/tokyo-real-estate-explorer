@@ -33,6 +33,19 @@ st.markdown("""
 **MLIT data lag:** XIT001 publishes data approximately 2 quarters behind the current date. The app dynamically computes the latest available period to avoid empty requests.
 
 **Curated estimates:** Prefecture-level prices and akiya rates on the Japan Overview page are not direct API outputs — they are curated estimates from MLIT aggregate reports and REINS publications. For transaction-level live MLIT data, use City Comparison or Tokyo Deep Dive.
+
+**Secondary market only:** XIT001 publishes only secondary-market transactions (re-sales of existing properties). New construction sold directly by developers is not included. Verified empirically: across 78,000 Tokyo records spanning 2020-2024, the API never returned the categories "Newly Built Detached House" or "Pre-owned Detached House" — MLIT classifies all detached buildings under `Residential Land(Land and Building)` and uses the `Purpose` field (House / Office / Shop) to distinguish residential from commercial.
+
+**Property type taxonomy used here:**
+
+| Our category | MLIT raw type | + Purpose |
+|---|---|---|
+| Used Apartment | Pre-owned Condominiums, etc. | (any) |
+| Used House | Residential Land(Land and Building) | House / empty |
+| Used Commercial | Residential Land(Land and Building) | Office / Shop |
+| Land Only | Residential Land(Land Only) | (any) |
+
+Forest Land and Agricultural Land records (~0.1% of volume) are dropped.
 """)
 
 st.markdown("---")

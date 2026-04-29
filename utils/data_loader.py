@@ -113,33 +113,29 @@ def _station_distance_factor(minutes: int) -> float:
 
 
 def _property_type_factor(ptype: str) -> float:
-    """
-    Used apartment is the baseline (1.00).
-    """
+    """Used apartment is the baseline (1.00)."""
     return {
-        "Used Apartment": 1.00,
-        "Used House":     0.85,  # typically cheaper per m² (land dominates)
-        "New House":      1.15,
-        "Land Only":      0.70,  # land-only has different pricing logic
+        "Used Apartment":  1.00,
+        "Used House":      0.85,   # typically cheaper per m² (land dominates)
+        "Used Commercial": 1.30,   # commercial buildings command a premium
+        "Land Only":       0.70,
     }[ptype]
 
 
 def _sample_area(ptype: str, rng: np.random.Generator) -> float:
     """Return square meters based on property type."""
     if ptype == "Used Apartment":
-        # Most apartments in Tokyo are 20-100 m², mode ~50
         return float(np.clip(rng.gamma(shape=4.5, scale=11), 18, 180))
     if ptype == "Used House":
         return float(np.clip(rng.gamma(shape=5, scale=18), 50, 280))
-    if ptype == "New House":
-        return float(np.clip(rng.gamma(shape=5.5, scale=17), 55, 260))
-    # Land Only
-    return float(np.clip(rng.gamma(shape=5, scale=22), 40, 350))
+    if ptype == "Used Commercial":
+        return float(np.clip(rng.gamma(shape=5, scale=22), 60, 400))
+    return float(np.clip(rng.gamma(shape=5, scale=22), 40, 350))  # Land Only
 
 
 def _sample_layout(ptype: str, area_m2: float, rng: np.random.Generator) -> str:
     """Pick a plausible layout given area and property type."""
-    if ptype == "Land Only":
+    if ptype in ("Land Only", "Used Commercial"):
         return "-"
     # Bias layout by size
     if area_m2 < 25:
@@ -182,13 +178,10 @@ def generate_synthetic_data(n: int = N_TRANSACTIONS, seed: int = RANDOM_SEED) ->
         tx_year = int(rng.choice(years, p=year_weights))
         tx_quarter = int(rng.integers(1, 5))
 
-        # Year built: apartments 1980-2023, new house always 2023-2024
-        if ptype == "New House":
-            year_built = int(rng.integers(tx_year - 1, tx_year + 1))
-        elif ptype == "Land Only":
+        # Year built: log-skewed around 1995-2015; Land Only has no building
+        if ptype == "Land Only":
             year_built = None
         else:
-            # Log-skewed around ~1995-2015
             year_built = int(np.clip(round(rng.normal(2005, 12)), 1975, tx_year))
 
         area_m2 = _sample_area(ptype, rng)
@@ -222,6 +215,8 @@ def generate_synthetic_data(n: int = N_TRANSACTIONS, seed: int = RANDOM_SEED) ->
             "ward": ward,
             "ward_ja": winfo["ja"],
             "property_type": ptype,
+            "purpose":          "House" if ptype in ("Used Apartment", "Used House") else None,
+            "region":           None,
             "tx_year": tx_year,
             "tx_quarter": tx_quarter,
             "tx_period": f"{tx_year}-Q{tx_quarter}",
@@ -236,11 +231,16 @@ def generate_synthetic_data(n: int = N_TRANSACTIONS, seed: int = RANDOM_SEED) ->
             "lat": winfo["lat"],
             "lon": winfo["lon"],
             # Extended fields (None in synthetic — populated from MLIT API)
-            "district":      None,
-            "structure":     None,
-            "direction":     None,
-            "renovation":    None,
-            "city_planning": None,
+            "district":         None,
+            "district_code":    None,
+            "structure":        None,
+            "direction":        None,
+            "renovation":       None,
+            "city_planning":    None,
+            "coverage_ratio":   None,
+            "floor_area_ratio": None,
+            "frontage_m":       None,
+            "breadth_m":        None,
         })
 
     df = pd.DataFrame(rows)
@@ -266,20 +266,39 @@ _MUNICIPALITY_TO_WARD: dict[str, str] = {
     "13122": "Katsushika", "13123": "Edogawa",
 }
 
-# MLIT "Type" field (English, language=en) → our property_type
-_TYPE_MAP: dict[str, str] = {
-    "Pre-owned Condominiums, etc.":       "Used Apartment",
-    "Pre-owned Detached House":           "Used House",
-    "Newly Built Detached House":         "New House",
-    "Residential Land(Land)":             "Land Only",
-    "Residential Land(Land and Building)": "Used House",
-    # Japanese fallbacks (if language param is ignored)
+# MLIT "Type" field (English, language=en) → broad bucket.
+# Verified across 78k records (2020-2024, all Tokyo): "Pre-owned Detached House"
+# and "Newly Built Detached House" never appear — MLIT classifies all houses
+# under "Residential Land(Land and Building)" with Purpose distinguishing
+# House / Office / Shop / Other. We split that bucket below using Purpose.
+_BROAD_TYPE_MAP: dict[str, str] = {
+    "Pre-owned Condominiums, etc.":         "Used Apartment",
+    "Residential Land(Land Only)":          "Land Only",
+    "Residential Land(Land and Building)":  "Land + Building",  # split by Purpose
+    # Japanese fallbacks (in case language=en is ignored)
     "中古マンション等": "Used Apartment",
-    "中古戸建":         "Used House",
-    "新築戸建":         "New House",
     "宅地(土地)":      "Land Only",
-    "宅地(土地と建物)": "Used House",
+    "宅地(土地と建物)": "Land + Building",
 }
+
+
+def _classify_property_type(rec: dict) -> str | None:
+    """Map an MLIT record to one of: Used Apartment, Used House,
+    Used Commercial, Land Only — using Type + Purpose fields together.
+    Returns None for Forest Land, Agricultural Land, or unmapped types.
+    """
+    broad = _BROAD_TYPE_MAP.get(rec.get("Type", ""))
+    if broad in ("Used Apartment", "Land Only"):
+        return broad
+    if broad == "Land + Building":
+        purpose = (rec.get("Purpose") or "").lower()
+        if "house" in purpose:
+            return "Used House"
+        if any(k in purpose for k in ("office", "shop", "store")):
+            return "Used Commercial"
+        # Empty purpose or "Other" — treat as residential by default (most common)
+        return "Used House"
+    return None
 
 # Japanese era base years for BuildingYear parsing
 _ERA_BASE = {"明治": 1868, "大正": 1912, "昭和": 1926, "平成": 1989, "令和": 2019}
@@ -378,7 +397,7 @@ def load_from_mlit_api(api_key: str) -> pd.DataFrame:
                 if ward is None:
                     continue
 
-                ptype = _TYPE_MAP.get(rec.get("Type", ""))
+                ptype = _classify_property_type(rec)
                 if ptype is None:
                     continue
 
@@ -409,10 +428,19 @@ def load_from_mlit_api(api_key: str) -> pd.DataFrame:
 
                 winfo = TOKYO_WARDS[ward]
                 raw_struct = str(rec.get("Structure") or "").strip()
+
+                def _num(v):
+                    try:
+                        return float(v) if v not in (None, "", "-") else None
+                    except (TypeError, ValueError):
+                        return None
+
                 rows.append({
                     "ward":             ward,
                     "ward_ja":          winfo["ja"],
                     "property_type":    ptype,
+                    "purpose":          str(rec.get("Purpose") or "").strip() or None,
+                    "region":           str(rec.get("Region") or "").strip() or None,
                     "tx_year":          tx_year,
                     "tx_quarter":       tx_quarter,
                     "tx_period":        f"{tx_year}-Q{tx_quarter}",
@@ -427,10 +455,15 @@ def load_from_mlit_api(api_key: str) -> pd.DataFrame:
                     "lat":              winfo["lat"],
                     "lon":              winfo["lon"],
                     "district":         str(rec.get("DistrictName") or "").strip() or None,
+                    "district_code":    str(rec.get("DistrictCode") or "").strip() or None,
                     "structure":        _STRUCTURE_MAP.get(raw_struct) if raw_struct else None,
                     "direction":        str(rec.get("Direction") or "").strip() or None,
                     "renovation":       str(rec.get("Renovation") or "").strip() or None,
                     "city_planning":    str(rec.get("CityPlanning") or "").strip() or None,
+                    "coverage_ratio":   _num(rec.get("CoverageRatio")),
+                    "floor_area_ratio": _num(rec.get("FloorAreaRatio")),
+                    "frontage_m":       _num(rec.get("Frontage")),
+                    "breadth_m":        _num(rec.get("Breadth")),
                 })
 
             time.sleep(0.4)  # respect MLIT rate limits
@@ -461,7 +494,7 @@ def load_city_data(pref_code: str, api_key: str, start_year: int = 2022) -> pd.D
                 records = []
 
             for rec in records:
-                ptype = _TYPE_MAP.get(rec.get("Type", ""))
+                ptype = _classify_property_type(rec)
                 if ptype is None:
                     continue
                 try:
@@ -490,6 +523,7 @@ def load_city_data(pref_code: str, api_key: str, start_year: int = 2022) -> pd.D
                     "prefecture_code": pref_code,
                     "city":            str(rec.get("Municipality") or rec.get("MunicipalityCode") or ""),
                     "property_type":   ptype,
+                    "purpose":         str(rec.get("Purpose") or "").strip() or None,
                     "tx_year":         tx_year,
                     "tx_quarter":      tx_quarter_val,
                     "tx_period":       f"{tx_year}-Q{tx_quarter_val}",

@@ -71,17 +71,19 @@ WARD_MAIN_STATIONS = {
 }
 
 PROPERTY_TYPES = [
-    "Used Apartment",   # 中古マンション
-    "Used House",       # 中古戸建
-    "New House",        # 新築戸建
-    "Land Only",        # 宅地(土地)
+    "Used Apartment",    # 中古マンション (residential condos)
+    "Used House",        # detached houses (Land + Building, Purpose: House)
+    "Used Commercial",   # offices, shops (Land + Building, Purpose: Office/Shop)
+    "Land Only",         # 宅地(土地)
 ]
 
-# Share of each property type in Tokyo market (2023 approximation)
+# Share of each property type in Tokyo MLIT data (verified empirically across
+# 78k records 2020-2024). MLIT XIT001 only publishes secondary-market deals,
+# so newly-built properties are not present.
 PROPERTY_TYPE_WEIGHTS = {
-    "Used Apartment": 0.58,
-    "Used House":     0.18,
-    "New House":      0.10,
-    "Land Only":      0.14,
+    "Used Apartment":   0.62,
+    "Used House":       0.20,
+    "Used Commercial":  0.08,
+    "Land Only":        0.10,
 }
 
