@@ -10,11 +10,12 @@ import streamlit as st
 
 from utils.data_loader import load_city_data, MAJOR_CITIES
 from utils.analytics import format_jpy, format_ppm2
-from utils.styles import inject_css, page_header, section_title, callout, kpi_card, footer, plotly_base, year_ticks
+from utils.styles import inject_css, page_header, section_title, callout, kpi_card, footer, plotly_base, year_ticks, nav_sidebar
 from utils.prefecture_data import NATIONAL_AVG_PPM2
 
 st.set_page_config(page_title="City Comparison · Japan RE", page_icon="🏙️", layout="wide", initial_sidebar_state="collapsed")
 inject_css()
+nav_sidebar()
 
 api_key = os.environ.get("MLIT_API_KEY", "")
 

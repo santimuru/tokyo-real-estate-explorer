@@ -9,7 +9,7 @@ import pandas as pd
 import plotly.express as px
 import streamlit as st
 
-from utils.styles import inject_css, page_header, section_title, callout, kpi_card, footer, plotly_base
+from utils.styles import inject_css, page_header, section_title, callout, kpi_card, footer, plotly_base, nav_sidebar
 from utils.prefecture_data import get_all_as_df, NATIONAL_AVG_PPM2
 
 st.set_page_config(
@@ -19,11 +19,10 @@ st.set_page_config(
     initial_sidebar_state="collapsed",
 )
 inject_css()
-
+nav_sidebar()
 
 # ── Sidebar ────────────────────────────────────────────────────────────────────
 with st.sidebar:
-    st.markdown("## 🗾 Navigation")
     section = st.radio(
         "Section",
         ["Price Map", "Depopulation & Prices", "Akiya Crisis"],

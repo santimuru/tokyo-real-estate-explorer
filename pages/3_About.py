@@ -3,10 +3,11 @@ from __future__ import annotations
 
 import os
 import streamlit as st
-from utils.styles import inject_css, page_header, section_title, callout, footer
+from utils.styles import inject_css, page_header, section_title, callout, footer, nav_sidebar
 
 st.set_page_config(page_title="About · Japan RE", page_icon="ℹ️", layout="wide", initial_sidebar_state="collapsed")
 inject_css()
+nav_sidebar()
 
 page_header(
     eyebrow="Japan Real Estate Intelligence · About",

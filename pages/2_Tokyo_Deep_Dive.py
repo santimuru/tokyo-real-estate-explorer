@@ -20,7 +20,7 @@ from utils.analytics import (
 )
 from utils.styles import (
     inject_css, page_header, section_title, callout, kpi_card,
-    footer, plotly_base, year_ticks, get_theme,
+    footer, plotly_base, year_ticks, get_theme, nav_sidebar,
 )
 
 st.set_page_config(
@@ -30,6 +30,7 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 inject_css()
+nav_sidebar()
 
 
 # ── Data ───────────────────────────────────────────────────────────────────────

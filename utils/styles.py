@@ -71,6 +71,8 @@ html, body, [class*="css"] {
     padding-bottom: 3rem;
     max-width: 1440px;
 }
+/* Hide Streamlit's auto-generated sidebar nav (shows raw filenames) */
+[data-testid="stSidebarNav"] { display: none !important; }
 
 /* ── Design tokens — light ── */
 :root {
@@ -349,6 +351,22 @@ def kpi_card(label: str, value: str, sub: str = "", accent: bool = False) -> Non
         f'<div class="{val_cls}">{value}</div>{sub_html}</div>',
         unsafe_allow_html=True,
     )
+
+
+def nav_sidebar() -> None:
+    """Custom sidebar navigation — replaces Streamlit's filename-based nav."""
+    with st.sidebar:
+        st.markdown("""
+<div style="padding: 1rem 0 0.5rem; display:flex; align-items:center; gap:0.6rem;">
+    <span style="font-size:1.4rem;">🗾</span>
+    <span style="font-weight:700; font-size:0.95rem; color:var(--text-h);">Japan RE Intelligence</span>
+</div>
+""", unsafe_allow_html=True)
+        st.page_link("app.py",                          label="Japan Overview",  icon="🗾")
+        st.page_link("pages/1_City_Comparison.py",      label="City Comparison", icon="🏙️")
+        st.page_link("pages/2_Tokyo_Deep_Dive.py",      label="Tokyo Deep Dive", icon="🗼")
+        st.page_link("pages/3_About.py",                label="About",           icon="ℹ️")
+        st.markdown("<hr style='margin:0.75rem 0; border-color:var(--border);'>", unsafe_allow_html=True)
 
 
 def footer(page_name: str, source: str = "MLIT Real Estate Information Library") -> None:
