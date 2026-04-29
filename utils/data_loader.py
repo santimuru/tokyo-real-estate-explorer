@@ -444,17 +444,16 @@ def load_from_mlit_api(api_key: str) -> pd.DataFrame:
     return pd.DataFrame(rows)
 
 
-def load_city_data(pref_code: str, api_key: str) -> pd.DataFrame:
+def load_city_data(pref_code: str, api_key: str, start_year: int = 2022) -> pd.DataFrame:
     """
     Fetch transaction data for any Japanese prefecture from MLIT XIT001.
-    Returns a city (municipality) level DataFrame — not ward-level.
-    Schema: prefecture_code, city, property_type, tx_year, tx_quarter, tx_period,
-            area_m2, layout, year_built, building_age, trade_price_jpy, price_per_m2_jpy
+    start_year defaults to 2022 (3 years) to keep City Comparison fast;
+    pass START_YEAR (2020) if a longer range is needed.
     """
     rows: list[dict] = []
     last_year, last_quarter = _last_available_period()
 
-    for year in range(START_YEAR, last_year + 1):
+    for year in range(start_year, last_year + 1):
         for quarter in range(1, 5):
             if year == last_year and quarter > last_quarter:
                 continue
@@ -504,7 +503,7 @@ def load_city_data(pref_code: str, api_key: str) -> pd.DataFrame:
                     "trade_price_jpy": int(trade_price),
                     "price_per_m2_jpy": int(price_per_m2),
                 })
-            time.sleep(0.4)
+            time.sleep(0.1)
 
     if not rows:
         raise RuntimeError(f"MLIT API returned no data for prefecture {pref_code}.")

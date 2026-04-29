@@ -9,7 +9,7 @@ import pandas as pd
 import plotly.express as px
 import streamlit as st
 
-from utils.styles import inject_css, platform_hero, page_header, section_title, callout, kpi_card, footer, plotly_base, nav_sidebar
+from utils.styles import inject_css, platform_hero, feature_cards, section_divider, page_header, section_title, callout, kpi_card, footer, plotly_base, nav_sidebar
 from utils.prefecture_data import get_all_as_df, NATIONAL_AVG_PPM2
 
 st.set_page_config(
@@ -21,6 +21,7 @@ st.set_page_config(
 inject_css()
 nav_sidebar()
 platform_hero()
+feature_cards()
 
 # ── Sidebar ────────────────────────────────────────────────────────────────────
 with st.sidebar:
@@ -63,6 +64,7 @@ PRICE_COLS = {2015: "price_ppm2_2015", 2019: "price_ppm2_2019", 2024: "price_ppm
 # SECTION: PRICE MAP
 # ══════════════════════════════════════════════════════════════════════
 if section == "Price Map":
+    section_divider("Japan Overview — Price Map")
     page_header(
         eyebrow="Japan Overview · Price Map",
         title="Real Estate Prices Across Japan",
@@ -129,6 +131,7 @@ if section == "Price Map":
 # SECTION: DEPOPULATION & PRICES
 # ══════════════════════════════════════════════════════════════════════
 elif section == "Depopulation & Prices":
+    section_divider("Japan Overview — Population & Prices")
     page_header(
         eyebrow="Japan Overview · Demographics",
         title="Population Decline vs Price Appreciation",
@@ -219,6 +222,7 @@ elif section == "Depopulation & Prices":
 # SECTION: AKIYA CRISIS
 # ══════════════════════════════════════════════════════════════════════
 elif section == "Akiya Crisis":
+    section_divider("Japan Overview — Akiya Crisis")
     page_header(
         eyebrow="Japan Overview · Vacancy Crisis",
         title="Japan's Akiya (空き家) Problem",

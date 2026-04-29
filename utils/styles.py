@@ -363,6 +363,67 @@ html, body, [class*="css"] {
     margin-top: 0.25rem;
 }
 
+/* ── Feature cards (landing page) ── */
+.feature-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin: 0 0 2rem;
+}
+.feature-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.4rem 1.5rem 1.2rem;
+    box-shadow: var(--shadow);
+}
+.fc-icon { font-size: 1.8rem; margin-bottom: 0.6rem; line-height: 1; }
+.fc-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text-h);
+    margin-bottom: 0.45rem;
+}
+.fc-desc {
+    font-size: 0.83rem;
+    color: var(--text-muted);
+    line-height: 1.65;
+}
+.fc-tags {
+    margin-top: 0.9rem;
+    display: flex;
+    gap: 0.35rem;
+    flex-wrap: wrap;
+}
+.fc-tag {
+    background: var(--accent-faint);
+    color: var(--accent);
+    border: 1px solid var(--accent);
+    border-radius: 20px;
+    padding: 0.1rem 0.5rem;
+    font-size: 0.65rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+
+/* ── Section divider with label ── */
+.section-divider {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin: 2rem 0 1.5rem;
+}
+.section-divider-line { flex: 1; height: 1px; background: var(--border); }
+.section-divider-label {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    white-space: nowrap;
+}
+
 /* ── Chart & data container borders ── */
 [data-testid="stPlotlyChart"] {
     border: 1px solid var(--border);
@@ -432,6 +493,74 @@ def kpi_card(label: str, value: str, sub: str = "", accent: bool = False) -> Non
     st.markdown(
         f'<div class="kpi"><div class="kpi-label">{label}</div>'
         f'<div class="{val_cls}">{value}</div>{sub_html}</div>',
+        unsafe_allow_html=True,
+    )
+
+
+def feature_cards() -> None:
+    """Three cards describing each section of the platform — shown on the landing page."""
+    st.markdown("""
+<div class="feature-grid">
+
+  <div class="feature-card">
+    <div class="fc-icon">🗾</div>
+    <div class="fc-title">Japan Overview</div>
+    <div class="fc-desc">
+      Choropleth of all 47 prefectures ranked by median ¥/m² with a 2015 / 2019 / 2024 year selector.
+      Scatter plot of population decline vs price appreciation — revealing Japan's urbanisation
+      concentration story. Plus the akiya crisis: 9 million vacant homes, mapped and trended
+      across regions from 2013 to 2023.
+    </div>
+    <div class="fc-tags">
+      <span class="fc-tag">47 Prefectures</span>
+      <span class="fc-tag">2015–2024</span>
+      <span class="fc-tag">MLIT Aggregates</span>
+    </div>
+  </div>
+
+  <div class="feature-card">
+    <div class="fc-icon">🏙️</div>
+    <div class="fc-title">City Comparison</div>
+    <div class="fc-desc">
+      Select 2–5 Japanese cities and compare their markets using transaction-level data from
+      the MLIT XIT001 API. Each data point is a real government-registered property sale —
+      not an index or estimate. Covers quarterly price trends, median ¥/m², YoY change,
+      and property type mix.
+    </div>
+    <div class="fc-tags">
+      <span class="fc-tag">Live MLIT API</span>
+      <span class="fc-tag">Up to 5 Cities</span>
+      <span class="fc-tag">Transaction Level</span>
+    </div>
+  </div>
+
+  <div class="feature-card">
+    <div class="fc-icon">🗼</div>
+    <div class="fc-title">Tokyo Deep Dive</div>
+    <div class="fc-desc">
+      Ward-level analytics for Tokyo's 23 Special Wards: bubble map, full ranking table,
+      area chart with YoY comparison, ward × year heatmap, and ward-specific breakdowns.
+      A k-NN price estimator returns P10 / P50 / P90 estimates for any property spec.
+      Investment signal dashboard scores each ward by momentum vs affordability.
+    </div>
+    <div class="fc-tags">
+      <span class="fc-tag">23 Wards</span>
+      <span class="fc-tag">k-NN Estimator</span>
+      <span class="fc-tag">Investment Signals</span>
+    </div>
+  </div>
+
+</div>
+""", unsafe_allow_html=True)
+
+
+def section_divider(label: str) -> None:
+    st.markdown(
+        f'<div class="section-divider">'
+        f'<div class="section-divider-line"></div>'
+        f'<div class="section-divider-label">{label}</div>'
+        f'<div class="section-divider-line"></div>'
+        f'</div>',
         unsafe_allow_html=True,
     )
 

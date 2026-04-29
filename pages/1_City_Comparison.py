@@ -51,9 +51,9 @@ if len(selected_cities) < 2:
     st.stop()
 
 
-@st.cache_data(show_spinner=True, ttl=3600)
-def _load_city(pref_code: str) -> pd.DataFrame:
-    return load_city_data(pref_code, os.environ.get("MLIT_API_KEY", ""))
+@st.cache_data(ttl=7200)
+def _load_city(pref_code: str, city_name: str) -> pd.DataFrame:
+    return load_city_data(pref_code, os.environ.get("MLIT_API_KEY", ""), start_year=2022)
 
 
 def _placeholder_df(city_name: str) -> pd.DataFrame:
@@ -62,7 +62,7 @@ def _placeholder_df(city_name: str) -> pd.DataFrame:
     pref_code = MAJOR_CITIES[city_name]["code"]
     base_ppm2 = code_to_ppm2.get(pref_code.lstrip("0") or pref_code, 300000)
     rows = []
-    for yr in range(2020, 2025):
+    for yr in range(2022, 2025):
         for q in range(1, 5):
             rows.append({
                 "prefecture_code": pref_code, "city": city_name,
@@ -77,17 +77,23 @@ def _placeholder_df(city_name: str) -> pd.DataFrame:
 CITY_COLORS = ["#3B82F6", "#F59E0B", "#EF4444", "#8B5CF6", "#10B981"]
 
 city_frames: dict[str, pd.DataFrame] = {}
-for city in selected_cities:
+cities_to_load = [c for c in selected_cities if api_key]
+if cities_to_load:
+    load_bar = st.progress(0, text="Loading city data from MLIT API…")
+for idx, city in enumerate(selected_cities):
     if not api_key:
         city_frames[city] = _placeholder_df(city)
     else:
+        load_bar.progress((idx) / len(selected_cities), text=f"Loading {city} from MLIT API… ({idx+1}/{len(selected_cities)})")
         try:
-            df_city = _load_city(MAJOR_CITIES[city]["code"])
+            df_city = _load_city(MAJOR_CITIES[city]["code"], city)
             df_city["city_name"] = city
             city_frames[city] = df_city
         except Exception as exc:
-            st.warning(f"Could not load data for {city}: {exc}")
+            st.warning(f"Could not load {city}: {exc} — showing estimate instead.")
             city_frames[city] = _placeholder_df(city)
+if cities_to_load:
+    load_bar.empty()
 
 if not city_frames:
     st.error("No city data available.")
