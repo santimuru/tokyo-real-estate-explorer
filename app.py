@@ -231,64 +231,99 @@ const ISLANDS = [
    [.266,.658],[.200,.629],[.200,.588],[.243,.563]],
 ];
 
-// 52 cities: [en, ja, prefecture, lat, lon, size, pop, price]
+// 83 cities: [en, ja, prefecture, lat, lon, size(1-3), pop, price]
 const CITIES = [
+  // Hokkaido
+  ['Wakkanai','稚内','Hokkaido',45.415,141.673,1,'',''],
   ['Sapporo','札幌','Hokkaido',43.065,141.354,3,'1.9M','¥131K/m²'],
-  ['Asahikawa','旭川','Hokkaido',43.771,142.364,1.5,'',''],
-  ['Hakodate','函館','Hokkaido',41.774,140.729,1.5,'',''],
+  ['Asahikawa','旭川','Hokkaido',43.771,142.364,2,'0.33M','¥78K/m²'],
+  ['Kushiro','釧路','Hokkaido',43.794,144.375,1.5,'0.17M','¥55K/m²'],
+  ['Obihiro','帯広','Hokkaido',42.917,143.196,1.5,'0.17M','¥52K/m²'],
+  ['Hakodate','函館','Hokkaido',41.774,140.729,2,'0.26M','¥75K/m²'],
+  ['Tomakomai','苫小牧','Hokkaido',42.636,141.605,1.5,'0.17M','¥65K/m²'],
+  // Tohoku
   ['Aomori','青森','Aomori',40.824,140.740,2,'0.28M','¥48K/m²'],
+  ['Hachinohe','八戸','Aomori',40.512,141.488,2,'0.22M','¥52K/m²'],
   ['Morioka','盛岡','Iwate',39.703,141.154,2,'0.29M','¥55K/m²'],
   ['Sendai','仙台','Miyagi',38.268,140.869,2.5,'1.1M','¥150K/m²'],
   ['Akita','秋田','Akita',39.720,140.103,2,'0.30M','¥35K/m²'],
   ['Yamagata','山形','Yamagata',38.240,140.363,2,'0.25M','¥55K/m²'],
   ['Fukushima','福島','Fukushima',37.750,140.467,2,'0.28M','¥65K/m²'],
+  ['Koriyama','郡山','Fukushima',37.399,140.387,2,'0.33M','¥78K/m²'],
+  ['Iwaki','いわき','Fukushima',37.052,140.887,1.5,'0.34M','¥68K/m²'],
+  // Kanto
   ['Mito','水戸','Ibaraki',36.341,140.447,2,'0.27M','¥90K/m²'],
+  ['Tsukuba','つくば','Ibaraki',36.082,140.078,1.5,'0.25M','¥130K/m²'],
   ['Utsunomiya','宇都宮','Tochigi',36.555,139.883,2,'0.52M','¥100K/m²'],
   ['Maebashi','前橋','Gunma',36.389,139.062,2,'0.34M','¥85K/m²'],
-  ['Saitama','さいたま','Saitama',35.861,139.645,2,'1.35M','¥210K/m²'],
-  ['Chiba','千葉','Chiba',35.605,140.123,2,'0.98M','¥195K/m²'],
+  ['Takasaki','高崎','Gunma',36.323,139.004,2,'0.37M','¥92K/m²'],
+  ['Saitama','さいたま','Saitama',35.861,139.645,2.5,'1.35M','¥210K/m²'],
+  ['Kawagoe','川越','Saitama',35.925,139.486,1.5,'0.35M','¥185K/m²'],
+  ['Chiba','千葉','Chiba',35.605,140.123,2.5,'0.98M','¥195K/m²'],
+  ['Funabashi','船橋','Chiba',35.694,139.983,2,'0.63M','¥200K/m²'],
   ['Tokyo','東京','Tokyo',35.690,139.692,3,'14M','¥863K/m²'],
-  ['Yokohama','横浜','Kanagawa',35.443,139.638,2.5,'3.8M','¥320K/m²'],
-  ['Kawasaki','川崎','Kanagawa',35.520,139.702,2,'1.5M','¥350K/m²'],
+  ['Kawasaki','川崎','Kanagawa',35.520,139.702,2.5,'1.5M','¥350K/m²'],
+  ['Yokohama','横浜','Kanagawa',35.443,139.638,3,'3.8M','¥320K/m²'],
+  ['Sagamihara','相模原','Kanagawa',35.571,139.372,2,'0.73M','¥230K/m²'],
+  ['Yokosuka','横須賀','Kanagawa',35.282,139.672,2,'0.40M','¥180K/m²'],
+  // Chubu
   ['Niigata','新潟','Niigata',37.916,139.036,2,'0.78M','¥72K/m²'],
   ['Toyama','富山','Toyama',36.695,137.213,2,'0.41M','¥82K/m²'],
   ['Kanazawa','金沢','Ishikawa',36.561,136.656,2,'0.46M','¥118K/m²'],
   ['Fukui','福井','Fukui',36.065,136.222,2,'0.26M','¥90K/m²'],
-  ['Kofu','甲府','Yamanashi',35.663,138.568,2,'0.19M','¥108K/m²'],
+  ['Kofu','甲府','Yamanashi',35.663,138.568,1.5,'0.19M','¥108K/m²'],
   ['Nagano','長野','Nagano',36.652,138.181,2,'0.37M','¥98K/m²'],
+  ['Matsumoto','松本','Nagano',36.238,137.972,1.5,'0.24M','¥105K/m²'],
   ['Gifu','岐阜','Gifu',35.423,136.760,2,'0.40M','¥110K/m²'],
+  ['Numazu','沼津','Shizuoka',35.096,138.863,1.5,'0.19M','¥115K/m²'],
   ['Shizuoka','静岡','Shizuoka',34.977,138.383,2,'0.69M','¥120K/m²'],
   ['Hamamatsu','浜松','Shizuoka',34.711,137.726,2,'0.80M','¥115K/m²'],
   ['Nagoya','名古屋','Aichi',35.181,136.907,3,'2.3M','¥215K/m²'],
+  ['Toyota','豊田','Aichi',35.083,137.157,2,'0.43M','¥115K/m²'],
+  ['Okazaki','岡崎','Aichi',34.948,137.163,2,'0.39M','¥120K/m²'],
+  ['Toyohashi','豊橋','Aichi',34.769,137.392,2,'0.38M','¥110K/m²'],
   ['Tsu','津','Mie',34.730,136.509,1.5,'0.28M','¥95K/m²'],
+  // Kansai
   ['Otsu','大津','Shiga',35.005,135.869,2,'0.35M','¥130K/m²'],
   ['Kyoto','京都','Kyoto',35.012,135.768,2.5,'1.4M','¥250K/m²'],
   ['Osaka','大阪','Osaka',34.693,135.502,3,'2.7M','¥289K/m²'],
+  ['Sakai','堺','Osaka',34.573,135.483,2,'0.83M','¥175K/m²'],
+  ['Higashiosaka','東大阪','Osaka',34.679,135.601,2,'0.49M','¥210K/m²'],
   ['Kobe','神戸','Hyogo',34.690,135.196,2.5,'1.5M','¥175K/m²'],
+  ['Himeji','姫路','Hyogo',34.816,134.686,2,'0.53M','¥110K/m²'],
+  ['Amagasaki','尼崎','Hyogo',34.735,135.413,2,'0.45M','¥200K/m²'],
   ['Nara','奈良','Nara',34.685,135.805,2,'0.35M','¥125K/m²'],
   ['Wakayama','和歌山','Wakayama',34.226,135.168,2,'0.36M','¥82K/m²'],
-  ['Tottori','鳥取','Tottori',35.501,134.238,2,'0.19M','¥60K/m²'],
-  ['Matsue','松江','Shimane',35.468,133.050,2,'0.20M','¥55K/m²'],
+  // Chugoku
+  ['Tottori','鳥取','Tottori',35.501,134.238,1.5,'0.19M','¥60K/m²'],
+  ['Matsue','松江','Shimane',35.468,133.050,1.5,'0.20M','¥55K/m²'],
   ['Okayama','岡山','Okayama',34.655,133.919,2,'0.72M','¥120K/m²'],
+  ['Kurashiki','倉敷','Okayama',34.585,133.772,2,'0.48M','¥100K/m²'],
   ['Hiroshima','広島','Hiroshima',34.385,132.455,2.5,'1.2M','¥183K/m²'],
-  ['Yamaguchi','山口','Yamaguchi',34.186,131.473,2,'0.19M','¥70K/m²'],
+  ['Fukuyama','福山','Hiroshima',34.486,133.363,2,'0.46M','¥90K/m²'],
+  ['Yamaguchi','山口','Yamaguchi',34.186,131.473,1.5,'0.19M','¥70K/m²'],
+  // Shikoku
   ['Tokushima','徳島','Tokushima',34.066,134.559,2,'0.26M','¥65K/m²'],
   ['Takamatsu','高松','Kagawa',34.340,134.047,2,'0.42M','¥100K/m²'],
   ['Matsuyama','松山','Ehime',33.839,132.765,2,'0.50M','¥85K/m²'],
   ['Kochi','高知','Kochi',33.559,133.531,2,'0.32M','¥72K/m²'],
-  ['Kitakyushu','北九州','Fukuoka',33.883,130.879,2,'0.94M','¥130K/m²'],
+  // Kyushu
+  ['Kitakyushu','北九州','Fukuoka',33.883,130.879,2.5,'0.94M','¥130K/m²'],
   ['Fukuoka','福岡','Fukuoka',33.590,130.401,3,'1.6M','¥193K/m²'],
-  ['Saga','佐賀','Saga',33.249,130.299,2,'0.23M','¥72K/m²'],
+  ['Kurume','久留米','Fukuoka',33.319,130.508,1.5,'0.31M','¥115K/m²'],
+  ['Saga','佐賀','Saga',33.249,130.299,1.5,'0.23M','¥72K/m²'],
+  ['Sasebo','佐世保','Nagasaki',33.181,129.715,1.5,'0.25M','¥65K/m²'],
   ['Nagasaki','長崎','Nagasaki',32.751,129.877,2,'0.41M','¥78K/m²'],
   ['Kumamoto','熊本','Kumamoto',32.803,130.742,2.5,'0.73M','¥135K/m²'],
   ['Oita','大分','Oita',33.238,131.612,2,'0.48M','¥88K/m²'],
   ['Miyazaki','宮崎','Miyazaki',31.911,131.424,2,'0.40M','¥75K/m²'],
   ['Kagoshima','鹿児島','Kagoshima',31.560,130.558,2,'0.60M','¥85K/m²'],
+  // Okinawa
   ['Naha','那覇','Okinawa',26.212,127.681,2,'0.32M','¥158K/m²'],
 ];
 
 const B = {{ xMin:.200, xMax:.980, yMin:.029, yMax:.671 }};
-let W, H, scale, offX, offY, LINK_D, MOUSE_R, particles = [];
+let W, H, scale, offX, offY, LINK_D, particles = [], nearest = null;
 
 function proj(nx, ny) {{ return [nx*scale+offX, ny*scale+offY]; }}
 function ll(lat, lon)  {{ return proj((lon-123)/23, (46-lat)/22); }}
@@ -304,13 +339,14 @@ function setup() {{
   offX   = (W - (B.xMax-B.xMin)*scale) / 2 - B.xMin*scale + W*0.02;
   // 6% top margin
   offY   = H * 0.06 - B.yMin*scale;
-  LINK_D  = scale * 0.14;
-  MOUSE_R = scale * 0.09;
+  LINK_D = scale * 0.13;
 
   particles = CITIES.map(([en,ja,pref,lat,lon,s,pop,price]) => {{
     const [x,y] = ll(lat,lon);
+    // radius proportional to city size (s=1 small town, s=3 major city)
+    const r = 1.0 + (s - 1) * 1.4;
     return {{ x,y,ox:x,oy:y, vx:(Math.random()-.5)*.25, vy:(Math.random()-.5)*.25,
-             r:s*0.88, en,ja,pref,pop,price }};
+             r, en,ja,pref,pop,price }};
   }});
 }}
 setup();
@@ -320,11 +356,12 @@ let mx=-9999, my=-9999;
 document.addEventListener('mousemove', e => {{
   const r = canvas.getBoundingClientRect();
   mx = e.clientX-r.left; my = e.clientY-r.top;
-  let best=null, bestD=32;
+  let best=null, bestD=60;
   particles.forEach(p => {{
     const d=Math.hypot(p.x-mx,p.y-my);
     if(d<bestD){{bestD=d;best=p;}}
   }});
+  nearest = best;
   if(best){{
     document.getElementById('t-en').textContent=best.en;
     document.getElementById('t-ja').textContent=best.ja;
@@ -341,7 +378,7 @@ document.addEventListener('mousemove', e => {{
     tip.style.display='none';
   }}
 }});
-document.addEventListener('mouseleave',()=>{{mx=-9999;my=-9999;tip.style.display='none';}});
+document.addEventListener('mouseleave',()=>{{mx=-9999;my=-9999;nearest=null;tip.style.display='none';}});
 
 function animate(){{
   ctx.clearRect(0,0,W,H);
@@ -370,16 +407,29 @@ function animate(){{
   }}
 
   particles.forEach(p=>{{
-    const d=Math.hypot(p.x-mx,p.y-my);
-    const bright=d<MOUSE_R?Math.pow(1-d/MOUSE_R,1.4):0;
-    ctx.beginPath();ctx.arc(p.x,p.y,p.r*(1+bright*2.5),0,Math.PI*2);
-    if(bright>0){{
-      ctx.shadowColor=`rgba(130,215,255,${{bright*.95}})`;
-      ctx.shadowBlur=8+bright*18;
-      ctx.fillStyle=`rgba(255,255,255,${{.5+bright*.5}})`;
+    const hot = (p === nearest);
+    if(hot){{
+      // outer ring — clear circle outline
+      ctx.beginPath();ctx.arc(p.x,p.y,p.r+8,0,Math.PI*2);
+      ctx.strokeStyle='rgba(100,200,255,0.90)';
+      ctx.lineWidth=1.5;
+      ctx.shadowColor='rgba(80,180,255,0.55)';
+      ctx.shadowBlur=14;
+      ctx.stroke();
+      // inner halo fill
+      ctx.beginPath();ctx.arc(p.x,p.y,p.r+3,0,Math.PI*2);
+      ctx.fillStyle='rgba(100,200,255,0.12)';
+      ctx.fill();
+      ctx.shadowBlur=0;
+    }}
+    ctx.beginPath();ctx.arc(p.x,p.y,hot?p.r*1.6:p.r,0,Math.PI*2);
+    if(hot){{
+      ctx.shadowColor='rgba(160,220,255,0.95)';
+      ctx.shadowBlur=22;
+      ctx.fillStyle='rgba(255,255,255,0.95)';
     }}else{{
       ctx.shadowColor='transparent';ctx.shadowBlur=0;
-      ctx.fillStyle='rgba(175,215,255,.70)';
+      ctx.fillStyle='rgba(175,215,255,.72)';
     }}
     ctx.fill();
   }});
