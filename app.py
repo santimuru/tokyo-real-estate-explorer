@@ -389,9 +389,10 @@ function setup() {{
     const [x,y] = ll(lat,lon);
     // radius proportional to city size (s=1 small town, s=3 major city)
     const r = 1.0 + (s - 1) * 1.4;
-    const phase = Math.random() * Math.PI * 2;
+    // transaction weight = population in millions (proxy for deal volume)
+    const txw = pop ? parseFloat(pop) : 0.08;
     return {{ x,y,ox:x,oy:y, vx:(Math.random()-.5)*.25, vy:(Math.random()-.5)*.25,
-             r, phase, en,ja,pref,pop,price }};
+             r, txw, en,ja,pref,pop,price }};
   }});
 }}
 setup();
@@ -400,18 +401,18 @@ window.addEventListener('resize', setup);
 // ── Transaction flash simulation ──────────────────────────────────────────────
 function triggerFlash() {{
   if(!particles.length) return;
-  // Weight flash probability by city size (more transactions in bigger cities)
-  const w = particles.map(p => p.r * p.r);
+  // Weight flash probability by population (proxy for transaction volume)
+  const w = particles.map(p => p.txw);
   const total = w.reduce((a,b)=>a+b, 0);
   let rnd = Math.random() * total;
   let idx = 0;
   for(let i=0; i<w.length; i++) {{ rnd -= w[i]; if(rnd<=0){{idx=i;break;}} }}
   flashes.push({{idx, a:0, dir:1}});
 }}
-// ~1 transaction visible per second, occasionally burst 2 at once
-setInterval(()=>{{ triggerFlash(); if(Math.random()<0.3) triggerFlash(); }}, 950);
-// seed a few on load
-setTimeout(()=>{{triggerFlash();triggerFlash();triggerFlash();}}, 400);
+// ~1 flash every 1.8s — subtly data-driven, not a light show
+setInterval(()=>{{ triggerFlash(); if(Math.random()<0.2) triggerFlash(); }}, 1800);
+// seed 2 on load
+setTimeout(()=>{{triggerFlash();triggerFlash();}}, 600);
 
 let mx=-9999, my=-9999;
 document.addEventListener('mousemove', e => {{
@@ -525,23 +526,23 @@ function animate(){{
   // ── Transaction flashes ───────────────────────────────────────────────────────
   for(let i=flashes.length-1; i>=0; i--){{
     const f=flashes[i];
-    if(f.dir===1){{ f.a+=0.14; if(f.a>=1){{f.a=1;f.dir=-1;}} }}
-    else          {{ f.a-=0.04; }}
+    if(f.dir===1){{ f.a+=0.07; if(f.a>=1){{f.a=1;f.dir=-1;}} }}
+    else          {{ f.a-=0.025; }}
     if(f.a<=0){{ flashes.splice(i,1); continue; }}
     const p=particles[f.idx];
-    // Expanding ring (grows as alpha fades)
-    const ring = p.r + (1-f.a)*22;
+    // Expanding ring
+    const ring = p.r + (1-f.a)*13;
     ctx.beginPath();ctx.arc(p.x,p.y,ring,0,Math.PI*2);
-    ctx.strokeStyle=`rgba(120,230,255,${{f.a*0.80}})`;
-    ctx.lineWidth=1.3;
-    ctx.shadowColor=`rgba(80,200,255,${{f.a*0.45}})`;
-    ctx.shadowBlur=10;
+    ctx.strokeStyle=`rgba(120,230,255,${{f.a*0.45}})`;
+    ctx.lineWidth=1.0;
+    ctx.shadowColor=`rgba(80,200,255,${{f.a*0.25}})`;
+    ctx.shadowBlur=7;
     ctx.stroke();
     // Bright dot flash
-    ctx.beginPath();ctx.arc(p.x,p.y,p.r*(1+f.a*0.55),0,Math.PI*2);
-    ctx.fillStyle=`rgba(220,245,255,${{f.a*0.90}})`;
-    ctx.shadowColor=`rgba(160,230,255,${{f.a}})`;
-    ctx.shadowBlur=14+f.a*10;
+    ctx.beginPath();ctx.arc(p.x,p.y,p.r*(1+f.a*0.40),0,Math.PI*2);
+    ctx.fillStyle=`rgba(220,245,255,${{f.a*0.55}})`;
+    ctx.shadowColor=`rgba(160,230,255,${{f.a*0.65}})`;
+    ctx.shadowBlur=10+f.a*6;
     ctx.fill();
     ctx.shadowBlur=0;
   }}
