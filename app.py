@@ -89,8 +89,8 @@ canvas {{ position:absolute; inset:0; display:block; }}
   pointer-events:none; z-index:6;
 }}
 .kicker {{
-  font-size:10px; font-weight:700; text-transform:uppercase;
-  letter-spacing:.20em; color:#60A5FA; margin-bottom:18px;
+  font-size:9px; font-weight:700; text-transform:uppercase;
+  letter-spacing:.20em; color:#60A5FA; margin-bottom:16px;
   display:flex; align-items:center; gap:10px;
 }}
 .kicker::before {{
@@ -99,51 +99,41 @@ canvas {{ position:absolute; inset:0; display:block; }}
   flex-shrink:0;
 }}
 .htitle-big {{
-  font-size:clamp(52px,6vw,72px); font-weight:900; color:#fff;
+  font-size:clamp(47px,5.4vw,65px); font-weight:900; color:#fff;
   letter-spacing:-.04em; line-height:.88;
   text-shadow:0 2px 40px rgba(0,0,0,.95);
 }}
 .htitle-sub {{
-  font-size:clamp(18px,2.2vw,26px); font-weight:400;
+  font-size:clamp(16px,2vw,23px); font-weight:400;
   color:rgba(160,200,255,.70); letter-spacing:.06em;
-  margin-top:10px; margin-bottom:24px;
+  margin-top:9px; margin-bottom:22px;
   text-transform:uppercase;
 }}
 .hdesc {{
-  font-size:13px; color:rgba(170,200,230,.55); line-height:1.82;
+  font-size:11.5px; color:rgba(170,200,230,.55); line-height:1.82;
   border-left:2px solid rgba(59,130,246,.35); padding-left:14px;
 }}
-.hdesc p {{ margin:0 0 11px; }}
+.hdesc p {{ margin:0 0 10px; }}
 .hdesc p:last-child {{ margin-bottom:0; }}
 .hdesc strong {{ color:rgba(200,225,255,.80); font-weight:600; }}
 
-/* ── Stats row — bottom left ── */
-#stats-row {{
-  position:absolute; left:3.5%; bottom:8%;
-  display:flex; gap:0; align-items:flex-start;
-  pointer-events:none; z-index:6;
-}}
-.sc {{
-  padding:0 32px 0 0; margin-right:32px;
-  border-right:1px solid rgba(255,255,255,.08);
-}}
-.sc:last-child {{ border-right:none; margin-right:0; }}
-.sn {{ font-size:36px; font-weight:800; color:#3B82F6; line-height:1; }}
 .sl {{
   font-size:8px; font-weight:600; text-transform:uppercase;
   letter-spacing:.10em; color:rgba(160,200,235,.40);
-  margin-top:6px; line-height:1.5;
+  margin-top:5px; line-height:1.5;
 }}
 
 /* ── Right floating stats ── */
 #stats-right {{
-  position:absolute; right:2.5%; top:26%;
+  position:absolute; right:2.5%; top:20%;
   pointer-events:none; z-index:6;
   display:flex; flex-direction:column; gap:0;
+  min-width:155px;
 }}
-.sr-block {{ padding:16px 0; border-bottom:1px solid rgba(255,255,255,.07); }}
+.sr-block {{ padding:12px 0; border-bottom:1px solid rgba(255,255,255,.07); }}
 .sr-block:last-child {{ border-bottom:none; }}
-.sn-big {{ font-size:44px; font-weight:900; color:#3B82F6; line-height:1; }}
+.sn-big {{ font-size:40px; font-weight:900; color:#3B82F6; line-height:1; }}
+.sn-sm  {{ font-size:26px; font-weight:800; color:#3B82F6; line-height:1; }}
 
 /* ── Bottom fade ── */
 #fade {{
@@ -220,23 +210,7 @@ canvas {{ position:absolute; inset:0; display:block; }}
   </div>
 </div>
 
-<!-- Bottom stats row -->
-<div id="stats-row">
-  <div class="sc">
-    <div class="sn">{s0v}</div>
-    <div class="sl">{s0l}</div>
-  </div>
-  <div class="sc">
-    <div class="sn">{s3v}</div>
-    <div class="sl">{s3l}</div>
-  </div>
-  <div class="sc">
-    <div class="sn">{s4v}</div>
-    <div class="sl">{s4l}</div>
-  </div>
-</div>
-
-<!-- Right-side floating stats -->
+<!-- All stats stacked on the right -->
 <div id="stats-right">
   <div class="sr-block">
     <div class="sn-big">{s1v}</div>
@@ -245,6 +219,18 @@ canvas {{ position:absolute; inset:0; display:block; }}
   <div class="sr-block">
     <div class="sn-big">{s2v}</div>
     <div class="sl">{s2l}</div>
+  </div>
+  <div class="sr-block">
+    <div class="sn-sm">{s0v}</div>
+    <div class="sl">{s0l}</div>
+  </div>
+  <div class="sr-block">
+    <div class="sn-sm">{s3v}</div>
+    <div class="sl">{s3l}</div>
+  </div>
+  <div class="sr-block">
+    <div class="sn-sm">{s4v}</div>
+    <div class="sl">{s4l}</div>
   </div>
 </div>
 
