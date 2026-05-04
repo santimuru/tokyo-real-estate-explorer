@@ -153,7 +153,7 @@ canvas {{ position:absolute; inset:0; display:block; }}
 
 <!-- Box 1: title + description -->
 <div class="box" id="b1">
-  <div class="eyebrow">Portfolio Project &nbsp;·&nbsp; Python · Streamlit · Plotly · MLIT API</div>
+  <div class="eyebrow">MLIT &nbsp;·&nbsp; 2010–2025 &nbsp;·&nbsp; 47 Prefectures &nbsp;·&nbsp; 2.8M+ Transactions</div>
   <div class="htitle">Japan Real Estate<br>Intelligence</div>
   <div class="hdesc">
     Transaction-level property data from Japan's Ministry of Land, Infrastructure,
@@ -279,10 +279,9 @@ function ll(lat, lon)  {{ return proj((lon-123)/23, (46-lat)/22); }}
 function setup() {{
   W = canvas.width  = window.innerWidth;
   H = canvas.height = window.innerHeight;
-  scale  = (H * 0.86) / (B.yMax - B.yMin);
-  // Shift Japan slightly right to leave room for title box on left
-  offX   = (W - (B.xMax-B.xMin)*scale) / 2 - B.xMin*scale + W*0.05;
-  offY   = H * 0.05 - B.yMin*scale;
+  scale  = (H * 0.78) / (B.yMax - B.yMin);
+  offX   = (W - (B.xMax-B.xMin)*scale) / 2 - B.xMin*scale + W*0.02;
+  offY   = H * 0.07 - B.yMin*scale;
   LINK_D = scale * 0.16;
   MOUSE_R = scale * 0.11;
 
