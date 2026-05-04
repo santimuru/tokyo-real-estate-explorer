@@ -387,17 +387,17 @@ html, body, [class*="css"] {
 }
 .fc-icon { font-size: 1.8rem; margin-bottom: 0.6rem; line-height: 1; }
 .fc-title {
-    font-size: 1rem;
+    font-size: 1.05rem;
     font-weight: 700;
     color: var(--text-h);
-    margin-bottom: 0.45rem;
+    margin-bottom: 0.5rem;
     user-select: text !important;
     -webkit-user-select: text !important;
 }
 .fc-desc {
-    font-size: 0.83rem;
+    font-size: 0.92rem;
     color: var(--text-muted);
-    line-height: 1.65;
+    line-height: 1.68;
     flex: 1;
     user-select: text !important;
     -webkit-user-select: text !important;

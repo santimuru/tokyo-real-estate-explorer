@@ -132,8 +132,7 @@ canvas {{ position:absolute; inset:0; display:block; }}
 }}
 .sr-block {{ padding:12px 0; border-bottom:1px solid rgba(255,255,255,.07); }}
 .sr-block:last-child {{ border-bottom:none; }}
-.sn-big {{ font-size:40px; font-weight:900; color:#3B82F6; line-height:1; }}
-.sn-sm  {{ font-size:26px; font-weight:800; color:#3B82F6; line-height:1; }}
+.sn {{ font-size:34px; font-weight:900; color:#3B82F6; line-height:1; }}
 
 /* ── Bottom fade ── */
 #fade {{
@@ -213,23 +212,23 @@ canvas {{ position:absolute; inset:0; display:block; }}
 <!-- All stats stacked on the right -->
 <div id="stats-right">
   <div class="sr-block">
-    <div class="sn-big">{s1v}</div>
+    <div class="sn">{s1v}</div>
     <div class="sl">{s1l}</div>
   </div>
   <div class="sr-block">
-    <div class="sn-big">{s2v}</div>
+    <div class="sn">{s2v}</div>
     <div class="sl">{s2l}</div>
   </div>
   <div class="sr-block">
-    <div class="sn-sm">{s0v}</div>
+    <div class="sn">{s0v}</div>
     <div class="sl">{s0l}</div>
   </div>
   <div class="sr-block">
-    <div class="sn-sm">{s3v}</div>
+    <div class="sn">{s3v}</div>
     <div class="sl">{s3l}</div>
   </div>
   <div class="sr-block">
-    <div class="sn-sm">{s4v}</div>
+    <div class="sn">{s4v}</div>
     <div class="sl">{s4l}</div>
   </div>
 </div>
@@ -367,7 +366,8 @@ const CITIES = [
 ];
 
 const B = {{ xMin:.200, xMax:.980, yMin:.029, yMax:.671 }};
-let W, H, scale, offX, offY, LINK_D, particles = [], nearest = null, t = 0;
+let W, H, scale, offX, offY, LINK_D, particles = [], nearest = null;
+const flashes = [];
 
 function proj(nx, ny) {{ return [nx*scale+offX, ny*scale+offY]; }}
 function ll(lat, lon)  {{ return proj((lon-123)/23, (46-lat)/22); }}
@@ -396,6 +396,22 @@ function setup() {{
 }}
 setup();
 window.addEventListener('resize', setup);
+
+// ── Transaction flash simulation ──────────────────────────────────────────────
+function triggerFlash() {{
+  if(!particles.length) return;
+  // Weight flash probability by city size (more transactions in bigger cities)
+  const w = particles.map(p => p.r * p.r);
+  const total = w.reduce((a,b)=>a+b, 0);
+  let rnd = Math.random() * total;
+  let idx = 0;
+  for(let i=0; i<w.length; i++) {{ rnd -= w[i]; if(rnd<=0){{idx=i;break;}} }}
+  flashes.push({{idx, a:0, dir:1}});
+}}
+// ~1 transaction visible per second, occasionally burst 2 at once
+setInterval(()=>{{ triggerFlash(); if(Math.random()<0.3) triggerFlash(); }}, 950);
+// seed a few on load
+setTimeout(()=>{{triggerFlash();triggerFlash();triggerFlash();}}, 400);
 
 let mx=-9999, my=-9999;
 document.addEventListener('mousemove', e => {{
@@ -454,7 +470,6 @@ document.addEventListener('mousemove', e => {{
 document.addEventListener('mouseleave',()=>{{mx=-9999;my=-9999;nearest=null;tip.style.display='none';}});
 
 function animate(){{
-  t += 0.022;
   ctx.clearRect(0,0,W,H);
 
   ISLANDS.forEach(pts=>{{
@@ -480,27 +495,24 @@ function animate(){{
     }}
   }}
 
+  // ── Base dots ────────────────────────────────────────────────────────────────
   particles.forEach(p=>{{
     const hot = (p === nearest);
-    const pr = p.r * (1 + Math.sin(t + p.phase) * 0.28); // breathe ±28%
     if(hot){{
-      // outer ring — clear circle outline
-      ctx.beginPath();ctx.arc(p.x,p.y,pr+8,0,Math.PI*2);
+      ctx.beginPath();ctx.arc(p.x,p.y,p.r+8,0,Math.PI*2);
       ctx.strokeStyle='rgba(100,200,255,0.90)';
       ctx.lineWidth=1.5;
       ctx.shadowColor='rgba(80,180,255,0.55)';
       ctx.shadowBlur=14;
       ctx.stroke();
-      // inner halo fill
-      ctx.beginPath();ctx.arc(p.x,p.y,pr+3,0,Math.PI*2);
+      ctx.beginPath();ctx.arc(p.x,p.y,p.r+3,0,Math.PI*2);
       ctx.fillStyle='rgba(100,200,255,0.12)';
       ctx.fill();
       ctx.shadowBlur=0;
     }}
-    ctx.beginPath();ctx.arc(p.x,p.y,hot?pr*1.6:pr,0,Math.PI*2);
+    ctx.beginPath();ctx.arc(p.x,p.y,hot?p.r*1.6:p.r,0,Math.PI*2);
     if(hot){{
-      ctx.shadowColor='rgba(160,220,255,0.95)';
-      ctx.shadowBlur=22;
+      ctx.shadowColor='rgba(160,220,255,0.95)';ctx.shadowBlur=22;
       ctx.fillStyle='rgba(255,255,255,0.95)';
     }}else{{
       ctx.shadowColor='transparent';ctx.shadowBlur=0;
@@ -509,6 +521,30 @@ function animate(){{
     ctx.fill();
   }});
   ctx.shadowBlur=0;
+
+  // ── Transaction flashes ───────────────────────────────────────────────────────
+  for(let i=flashes.length-1; i>=0; i--){{
+    const f=flashes[i];
+    if(f.dir===1){{ f.a+=0.14; if(f.a>=1){{f.a=1;f.dir=-1;}} }}
+    else          {{ f.a-=0.04; }}
+    if(f.a<=0){{ flashes.splice(i,1); continue; }}
+    const p=particles[f.idx];
+    // Expanding ring (grows as alpha fades)
+    const ring = p.r + (1-f.a)*22;
+    ctx.beginPath();ctx.arc(p.x,p.y,ring,0,Math.PI*2);
+    ctx.strokeStyle=`rgba(120,230,255,${{f.a*0.80}})`;
+    ctx.lineWidth=1.3;
+    ctx.shadowColor=`rgba(80,200,255,${{f.a*0.45}})`;
+    ctx.shadowBlur=10;
+    ctx.stroke();
+    // Bright dot flash
+    ctx.beginPath();ctx.arc(p.x,p.y,p.r*(1+f.a*0.55),0,Math.PI*2);
+    ctx.fillStyle=`rgba(220,245,255,${{f.a*0.90}})`;
+    ctx.shadowColor=`rgba(160,230,255,${{f.a}})`;
+    ctx.shadowBlur=14+f.a*10;
+    ctx.fill();
+    ctx.shadowBlur=0;
+  }}
   requestAnimationFrame(animate);
 }}
 animate();
