@@ -86,7 +86,7 @@ canvas {{ position:absolute; inset:0; display:block; }}
 /* ── Main hero text ── */
 #hero {{
   position:absolute; left:3.5%; top:9%; width:40%;
-  pointer-events:none; z-index:6;
+  z-index:6;
 }}
 .kicker {{
   font-size:9px; font-weight:700; text-transform:uppercase;
