@@ -454,7 +454,7 @@ document.addEventListener('mousemove', e => {{
 document.addEventListener('mouseleave',()=>{{mx=-9999;my=-9999;nearest=null;tip.style.display='none';}});
 
 function animate(){{
-  t += 0.007;
+  t += 0.022;
   ctx.clearRect(0,0,W,H);
 
   ISLANDS.forEach(pts=>{{
@@ -482,7 +482,7 @@ function animate(){{
 
   particles.forEach(p=>{{
     const hot = (p === nearest);
-    const pr = p.r * (1 + Math.sin(t + p.phase) * 0.10); // gentle breathe ±10%
+    const pr = p.r * (1 + Math.sin(t + p.phase) * 0.28); // breathe ±28%
     if(hot){{
       // outer ring — clear circle outline
       ctx.beginPath();ctx.arc(p.x,p.y,pr+8,0,Math.PI*2);

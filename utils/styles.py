@@ -367,21 +367,22 @@ html, body, [class*="css"] {
 
 /* ── Feature cards (landing page) ── */
 .feature-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    align-items: stretch;
+    display: flex !important;
+    flex-direction: row;
+    align-items: stretch !important;
     gap: 1rem;
     margin: 0 0 2rem;
 }
 .feature-card {
+    flex: 1 1 0 !important;
+    min-width: 0;
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: 12px;
     padding: 1.4rem 1.5rem 1.2rem;
     box-shadow: var(--shadow);
-    display: flex;
-    flex-direction: column;
-    height: 100%;
+    display: flex !important;
+    flex-direction: column !important;
     box-sizing: border-box;
 }
 .fc-icon { font-size: 1.8rem; margin-bottom: 0.6rem; line-height: 1; }
