@@ -367,7 +367,7 @@ const CITIES = [
 ];
 
 const B = {{ xMin:.200, xMax:.980, yMin:.029, yMax:.671 }};
-let W, H, scale, offX, offY, LINK_D, particles = [], nearest = null;
+let W, H, scale, offX, offY, LINK_D, particles = [], nearest = null, t = 0;
 
 function proj(nx, ny) {{ return [nx*scale+offX, ny*scale+offY]; }}
 function ll(lat, lon)  {{ return proj((lon-123)/23, (46-lat)/22); }}
@@ -389,8 +389,9 @@ function setup() {{
     const [x,y] = ll(lat,lon);
     // radius proportional to city size (s=1 small town, s=3 major city)
     const r = 1.0 + (s - 1) * 1.4;
+    const phase = Math.random() * Math.PI * 2;
     return {{ x,y,ox:x,oy:y, vx:(Math.random()-.5)*.25, vy:(Math.random()-.5)*.25,
-             r, en,ja,pref,pop,price }};
+             r, phase, en,ja,pref,pop,price }};
   }});
 }}
 setup();
@@ -453,6 +454,7 @@ document.addEventListener('mousemove', e => {{
 document.addEventListener('mouseleave',()=>{{mx=-9999;my=-9999;nearest=null;tip.style.display='none';}});
 
 function animate(){{
+  t += 0.007;
   ctx.clearRect(0,0,W,H);
 
   ISLANDS.forEach(pts=>{{
@@ -480,21 +482,22 @@ function animate(){{
 
   particles.forEach(p=>{{
     const hot = (p === nearest);
+    const pr = p.r * (1 + Math.sin(t + p.phase) * 0.10); // gentle breathe ±10%
     if(hot){{
       // outer ring — clear circle outline
-      ctx.beginPath();ctx.arc(p.x,p.y,p.r+8,0,Math.PI*2);
+      ctx.beginPath();ctx.arc(p.x,p.y,pr+8,0,Math.PI*2);
       ctx.strokeStyle='rgba(100,200,255,0.90)';
       ctx.lineWidth=1.5;
       ctx.shadowColor='rgba(80,180,255,0.55)';
       ctx.shadowBlur=14;
       ctx.stroke();
       // inner halo fill
-      ctx.beginPath();ctx.arc(p.x,p.y,p.r+3,0,Math.PI*2);
+      ctx.beginPath();ctx.arc(p.x,p.y,pr+3,0,Math.PI*2);
       ctx.fillStyle='rgba(100,200,255,0.12)';
       ctx.fill();
       ctx.shadowBlur=0;
     }}
-    ctx.beginPath();ctx.arc(p.x,p.y,hot?p.r*1.6:p.r,0,Math.PI*2);
+    ctx.beginPath();ctx.arc(p.x,p.y,hot?pr*1.6:pr,0,Math.PI*2);
     if(hot){{
       ctx.shadowColor='rgba(160,220,255,0.95)';
       ctx.shadowBlur=22;

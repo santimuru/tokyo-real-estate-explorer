@@ -369,6 +369,7 @@ html, body, [class*="css"] {
 .feature-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
+    align-items: stretch;
     gap: 1rem;
     margin: 0 0 2rem;
 }
@@ -380,6 +381,8 @@ html, body, [class*="css"] {
     box-shadow: var(--shadow);
     display: flex;
     flex-direction: column;
+    height: 100%;
+    box-sizing: border-box;
 }
 .fc-icon { font-size: 1.8rem; margin-bottom: 0.6rem; line-height: 1; }
 .fc-title {
@@ -515,10 +518,9 @@ def feature_cards() -> None:
     <div class="fc-icon">🗾</div>
     <div class="fc-title">Japan Overview</div>
     <div class="fc-desc">
-      Choropleth of all 47 prefectures ranked by median ¥/m² with a 2015 / 2019 / 2024 year selector.
-      Scatter plot of population decline vs price appreciation — revealing Japan's urbanisation
-      concentration story. Plus the akiya crisis: 9 million vacant homes, mapped and trended
-      across regions from 2013 to 2023.
+      Choropleth of all 47 prefectures ranked by median ¥/m² with a 2015–2024 year selector.
+      Scatter of population decline vs price appreciation — revealing Japan's urbanisation story.
+      Includes the akiya vacancy crisis: 9 million empty homes mapped and trended by region.
     </div>
     <div class="fc-tags">
       <span class="fc-tag">47 Prefectures</span>
