@@ -75,69 +75,86 @@ def _build_hero(stats: list[tuple[str, str]], height: int = 820) -> str:
 <head>
 <style>
 * {{ margin:0; padding:0; box-sizing:border-box; }}
-html, body {{ width:100%; height:100%; overflow:hidden; background:#0e1117; }}
+html, body {{ width:100%; height:100%; overflow:hidden; background:#0e1117; font-family:system-ui,-apple-system,sans-serif; }}
 canvas {{ position:absolute; inset:0; display:block; }}
 
-/* gradient top bar */
 #bar {{
   position:absolute; top:0; left:0; right:0; height:3px; z-index:10;
   background:linear-gradient(90deg,#3B82F6,#8B5CF6,#10B981);
-  border-radius:4px 4px 0 0;
 }}
 
-/* shared box style */
-.box {{
-  position:absolute; z-index:6; pointer-events:none;
-  background:rgba(12,16,26,0.84);
-  backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px);
-  border:1px solid rgba(255,255,255,0.10);
-  border-radius:12px; padding:18px 20px;
-  font-family:system-ui,-apple-system,sans-serif;
+/* ── Main hero text ── */
+#hero {{
+  position:absolute; left:3.5%; top:9%; width:40%;
+  pointer-events:none; z-index:6;
 }}
-
-/* Box 1 — title top-left */
-#b1 {{ left:2%; top:5%; width:30%; }}
-.eyebrow {{
-  font-size:9px; font-weight:700; text-transform:uppercase;
-  letter-spacing:.13em; color:#3B82F6; margin-bottom:9px;
+.kicker {{
+  font-size:10px; font-weight:700; text-transform:uppercase;
+  letter-spacing:.20em; color:#60A5FA; margin-bottom:18px;
+  display:flex; align-items:center; gap:10px;
 }}
-.htitle {{
-  font-size:24px; font-weight:800; color:#e8eaf6;
-  letter-spacing:-.02em; line-height:1.15; margin-bottom:10px;
+.kicker::before {{
+  content:''; display:block; width:28px; height:1px;
+  background:linear-gradient(90deg,#3B82F6,transparent);
+  flex-shrink:0;
+}}
+.htitle-big {{
+  font-size:clamp(52px,6vw,72px); font-weight:900; color:#fff;
+  letter-spacing:-.04em; line-height:.88;
+  text-shadow:0 2px 40px rgba(0,0,0,.95);
+}}
+.htitle-sub {{
+  font-size:clamp(18px,2.2vw,26px); font-weight:400;
+  color:rgba(160,200,255,.70); letter-spacing:.06em;
+  margin-top:10px; margin-bottom:24px;
+  text-transform:uppercase;
 }}
 .hdesc {{
-  font-size:11px; color:rgba(200,215,235,.60); line-height:1.65;
+  font-size:12.5px; color:rgba(170,200,230,.50); line-height:1.80;
+  border-left:2px solid rgba(59,130,246,.40); padding-left:14px;
+  max-width:360px;
 }}
 
-/* Box 2 — key stats right side */
-#b2 {{ right:2%; top:32%; width:16%; display:flex; flex-direction:column; gap:14px; }}
-.stat-block {{ }}
-.sv {{ font-size:28px; font-weight:800; color:#3B82F6; line-height:1; }}
-.sl {{
-  font-size:8px; font-weight:600; text-transform:uppercase;
-  letter-spacing:.08em; color:rgba(200,215,235,.48); margin-top:3px;
-  line-height:1.3;
-}}
-.sdiv {{ border-top:1px solid rgba(255,255,255,.08); margin:4px 0; }}
-
-/* Box 3 — stats row bottom */
-#b3 {{
-  left:2%; bottom:4%; width:54%;
+/* ── Stats row — bottom left ── */
+#stats-row {{
+  position:absolute; left:3.5%; bottom:8%;
   display:flex; gap:0; align-items:flex-start;
-  padding:14px 20px;
+  pointer-events:none; z-index:6;
 }}
 .sc {{
-  flex:1; min-width:0; padding:0 16px;
-  border-left:1px solid rgba(255,255,255,.08);
+  padding:0 32px 0 0; margin-right:32px;
+  border-right:1px solid rgba(255,255,255,.08);
 }}
-.sc:first-child {{ padding-left:0; border-left:none; }}
+.sc:last-child {{ border-right:none; margin-right:0; }}
+.sn {{ font-size:36px; font-weight:800; color:#3B82F6; line-height:1; }}
+.sl {{
+  font-size:8px; font-weight:600; text-transform:uppercase;
+  letter-spacing:.10em; color:rgba(160,200,235,.40);
+  margin-top:6px; line-height:1.5;
+}}
 
-/* City tooltip */
+/* ── Right floating stats ── */
+#stats-right {{
+  position:absolute; right:2.5%; top:26%;
+  pointer-events:none; z-index:6;
+  display:flex; flex-direction:column; gap:0;
+}}
+.sr-block {{ padding:16px 0; border-bottom:1px solid rgba(255,255,255,.07); }}
+.sr-block:last-child {{ border-bottom:none; }}
+.sn-big {{ font-size:44px; font-weight:900; color:#3B82F6; line-height:1; }}
+
+/* ── Bottom fade ── */
+#fade {{
+  position:absolute; bottom:0; left:0; right:0; height:100px; z-index:5;
+  background:linear-gradient(to bottom,transparent,rgba(14,17,23,.90));
+  pointer-events:none;
+}}
+
+/* ── City tooltip ── */
 #tip {{
   position:absolute; display:none; pointer-events:none; z-index:20;
   background:rgba(10,14,22,0.96); color:rgba(195,225,255,.95);
   padding:8px 12px; border-radius:8px;
-  font-family:system-ui,-apple-system,sans-serif;
   border:1px solid rgba(100,155,255,.4);
   min-width:140px; max-width:210px;
 }}
@@ -150,45 +167,45 @@ canvas {{ position:absolute; inset:0; display:block; }}
 <body>
 <div id="bar"></div>
 <canvas id="c"></canvas>
+<div id="fade"></div>
 
-<!-- Box 1: title + description -->
-<div class="box" id="b1">
-  <div class="eyebrow">MLIT &nbsp;·&nbsp; 2010–2025 &nbsp;·&nbsp; 47 Prefectures &nbsp;·&nbsp; 2.8M+ Transactions</div>
-  <div class="htitle">Japan Real Estate<br>Intelligence</div>
+<!-- Main title block -->
+<div id="hero">
+  <div class="kicker">MLIT &nbsp;·&nbsp; 2010–2025 &nbsp;·&nbsp; 2.8M+ Transactions</div>
+  <div class="htitle-big">JAPAN</div>
+  <div class="htitle-sub">Real Estate Intelligence</div>
   <div class="hdesc">
-    Transaction-level property data from Japan's Ministry of Land, Infrastructure,
-    Transport and Tourism (MLIT) — covering every prefecture in the country and every
-    one of Tokyo's 23 special wards. Explore national price maps, demographic trends,
-    the akiya vacancy crisis, and deep ward-level analytics.
+    Transaction-level data from Japan's Ministry of Land, Infrastructure,
+    Transport and Tourism — every prefecture, every one of Tokyo's 23 special wards.
+    Price maps, vacancy trends, demographic shifts, deep ward analytics.
   </div>
 </div>
 
-<!-- Box 2: two key stats -->
-<div class="box" id="b2">
-  <div class="stat-block">
-    <div class="sv">{s1v}</div>
-    <div class="sl">{s1l}</div>
-  </div>
-  <div class="sdiv"></div>
-  <div class="stat-block">
-    <div class="sv">{s2v}</div>
-    <div class="sl">{s2l}</div>
-  </div>
-</div>
-
-<!-- Box 3: three stats row -->
-<div class="box" id="b3">
+<!-- Bottom stats row -->
+<div id="stats-row">
   <div class="sc">
-    <div class="sv">{s0v}</div>
+    <div class="sn">{s0v}</div>
     <div class="sl">{s0l}</div>
   </div>
   <div class="sc">
-    <div class="sv">{s3v}</div>
+    <div class="sn">{s3v}</div>
     <div class="sl">{s3l}</div>
   </div>
   <div class="sc">
-    <div class="sv">{s4v}</div>
+    <div class="sn">{s4v}</div>
     <div class="sl">{s4l}</div>
+  </div>
+</div>
+
+<!-- Right-side floating stats -->
+<div id="stats-right">
+  <div class="sr-block">
+    <div class="sn-big">{s1v}</div>
+    <div class="sl">{s1l}</div>
+  </div>
+  <div class="sr-block">
+    <div class="sn-big">{s2v}</div>
+    <div class="sl">{s2l}</div>
   </div>
 </div>
 
