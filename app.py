@@ -162,17 +162,11 @@ components.html("""<!DOCTYPE html>
         ctx.lineWidth = 1; ctx.stroke();
       });
 
-      // Physics
+      // Physics — gentle ambient drift only, no mouse repulsion
       particles.forEach(p => {
         p.vx += (p.ox - p.x) * 0.003;
         p.vy += (p.oy - p.y) * 0.003;
         p.vx *= 0.95; p.vy *= 0.95;
-        const dx = p.x - mx, dy = p.y - my;
-        const d = Math.sqrt(dx*dx + dy*dy);
-        if (d < MOUSE_R && d > 0.1) {
-          const f = (MOUSE_R - d) / MOUSE_R * 2.2;
-          p.vx += dx/d * f; p.vy += dy/d * f;
-        }
         p.x += p.vx; p.y += p.vy;
       });
 
