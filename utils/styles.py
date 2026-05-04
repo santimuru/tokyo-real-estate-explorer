@@ -378,6 +378,8 @@ html, body, [class*="css"] {
     border-radius: 12px;
     padding: 1.4rem 1.5rem 1.2rem;
     box-shadow: var(--shadow);
+    display: flex;
+    flex-direction: column;
 }
 .fc-icon { font-size: 1.8rem; margin-bottom: 0.6rem; line-height: 1; }
 .fc-title {
@@ -385,11 +387,16 @@ html, body, [class*="css"] {
     font-weight: 700;
     color: var(--text-h);
     margin-bottom: 0.45rem;
+    user-select: text !important;
+    -webkit-user-select: text !important;
 }
 .fc-desc {
     font-size: 0.83rem;
     color: var(--text-muted);
     line-height: 1.65;
+    flex: 1;
+    user-select: text !important;
+    -webkit-user-select: text !important;
 }
 .fc-tags {
     margin-top: 0.9rem;
