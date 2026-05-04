@@ -110,10 +110,12 @@ canvas {{ position:absolute; inset:0; display:block; }}
   text-transform:uppercase;
 }}
 .hdesc {{
-  font-size:12.5px; color:rgba(170,200,230,.50); line-height:1.80;
-  border-left:2px solid rgba(59,130,246,.40); padding-left:14px;
-  max-width:360px;
+  font-size:13px; color:rgba(170,200,230,.55); line-height:1.82;
+  border-left:2px solid rgba(59,130,246,.35); padding-left:14px;
 }}
+.hdesc p {{ margin:0 0 11px; }}
+.hdesc p:last-child {{ margin-bottom:0; }}
+.hdesc strong {{ color:rgba(200,225,255,.80); font-weight:600; }}
 
 /* ── Stats row — bottom left ── */
 #stats-row {{
@@ -204,9 +206,17 @@ canvas {{ position:absolute; inset:0; display:block; }}
   <div class="htitle-big">JAPAN</div>
   <div class="htitle-sub">Real Estate Intelligence</div>
   <div class="hdesc">
-    Transaction-level data from Japan's Ministry of Land, Infrastructure,
-    Transport and Tourism — every prefecture, every one of Tokyo's 23 special wards.
-    Price maps, vacancy trends, demographic shifts, deep ward analytics.
+    <p>Transaction-level property data sourced directly from Japan's
+    <strong>Ministry of Land, Infrastructure, Transport and Tourism (MLIT)</strong> —
+    the authoritative government registry covering every prefecture, every one of
+    Tokyo's 23 special wards, and every recorded property type.</p>
+    <p>Explore how <strong>Tokyo commands a 17× price premium</strong> over the
+    national median, while regional cities like Hokkaido, Fukuoka, and Okinawa
+    quietly outpaced the capital during 2020–2024 — driven by remote-work migration,
+    semiconductor investment, and tourism recovery.</p>
+    <p>Understand the <strong>akiya crisis</strong>: over 9 million vacant homes
+    scattered across Japan, with four prefectures exceeding 20% vacancy rates and
+    climbing. Real transaction prices. No estimates. No interpolation.</p>
   </div>
 </div>
 

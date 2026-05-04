@@ -69,7 +69,7 @@ html, body, [class*="css"] {
    (collapsing made Share/menu buttons overlap page content) */
 [data-testid="stHeader"] { background: transparent !important; }
 .main .block-container {
-    padding-top: 2.5rem !important;
+    padding-top: 0.25rem !important;
     padding-bottom: 3rem;
     max-width: 1440px;
 }
