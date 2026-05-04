@@ -409,10 +409,12 @@ function triggerFlash() {{
   for(let i=0; i<w.length; i++) {{ rnd -= w[i]; if(rnd<=0){{idx=i;break;}} }}
   flashes.push({{idx, a:0, dir:1}});
 }}
-// ~1 flash every 1.8s — subtly data-driven, not a light show
-setInterval(()=>{{ triggerFlash(); if(Math.random()<0.2) triggerFlash(); }}, 1800);
-// seed 2 on load
-setTimeout(()=>{{triggerFlash();triggerFlash();}}, 600);
+// Random interval 150-700ms — feels organic, never metronomic
+function scheduleFlash() {{
+  triggerFlash();
+  setTimeout(scheduleFlash, 150 + Math.random() * 550);
+}}
+setTimeout(scheduleFlash, 300);
 
 let mx=-9999, my=-9999;
 document.addEventListener('mousemove', e => {{
