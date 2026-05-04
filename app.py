@@ -153,15 +153,44 @@ canvas {{ position:absolute; inset:0; display:block; }}
 /* ── City tooltip ── */
 #tip {{
   position:absolute; display:none; pointer-events:none; z-index:20;
-  background:rgba(10,14,22,0.96); color:rgba(195,225,255,.95);
-  padding:8px 12px; border-radius:8px;
-  border:1px solid rgba(100,155,255,.4);
-  min-width:140px; max-width:210px;
+  background:rgba(8,12,20,0.97);
+  border:1px solid rgba(70,130,255,.30);
+  border-radius:11px; min-width:210px; max-width:250px;
+  box-shadow:0 12px 40px rgba(0,0,0,.65), 0 0 0 1px rgba(100,160,255,.06);
+  overflow:hidden; font-family:system-ui,-apple-system,sans-serif;
 }}
-.t-head {{ font-size:13px; font-weight:700; display:flex; align-items:baseline; gap:6px; }}
-.t-ja   {{ font-size:12px; font-weight:400; color:rgba(150,200,255,.7); }}
-.t-pref {{ font-size:9.5px; color:rgba(140,190,255,.55); text-transform:uppercase; letter-spacing:.08em; margin-top:2px; }}
-.t-data {{ font-size:10.5px; color:rgba(175,215,255,.72); margin-top:4px; line-height:1.5; }}
+.t-header {{
+  padding:12px 14px 10px;
+  border-bottom:1px solid rgba(255,255,255,.055);
+  background:rgba(255,255,255,.025);
+}}
+.t-name-row {{ display:flex; align-items:baseline; gap:8px; }}
+.t-city-en {{
+  font-size:17px; font-weight:800; color:#fff; letter-spacing:-.02em; line-height:1;
+}}
+.t-city-ja {{
+  font-size:13px; font-weight:400; color:rgba(130,180,255,.60);
+}}
+.t-meta {{
+  font-size:8.5px; font-weight:700; text-transform:uppercase;
+  letter-spacing:.13em; color:rgba(90,145,255,.50); margin-top:6px;
+  display:flex; align-items:center; gap:6px;
+}}
+.t-meta-dot {{ width:3px; height:3px; border-radius:50%; background:rgba(90,145,255,.35); flex-shrink:0; }}
+.t-body {{
+  padding:11px 14px 13px;
+  display:grid; grid-template-columns:1fr 1fr; gap:10px 16px;
+}}
+.t-stat-lbl {{
+  font-size:7.5px; font-weight:700; text-transform:uppercase;
+  letter-spacing:.11em; color:rgba(120,170,230,.38); margin-bottom:4px;
+}}
+.t-stat-num {{ font-size:20px; font-weight:800; color:#3B82F6; line-height:1; }}
+.t-stat-unit {{ font-size:9px; color:rgba(140,190,255,.50); margin-left:2px; }}
+.t-tier {{ display:flex; gap:3px; margin-top:5px; align-items:center; }}
+.td {{ width:5px; height:5px; border-radius:50%; }}
+.td.on  {{ background:#3B82F6; }}
+.td.off {{ background:rgba(255,255,255,.10); }}
 </style>
 </head>
 <body>
@@ -211,9 +240,28 @@ canvas {{ position:absolute; inset:0; display:block; }}
 
 <!-- City tooltip -->
 <div id="tip">
-  <div class="t-head"><span id="t-en"></span><span class="t-ja" id="t-ja"></span></div>
-  <div class="t-pref" id="t-pf"></div>
-  <div class="t-data" id="t-dt"></div>
+  <div class="t-header">
+    <div class="t-name-row">
+      <span class="t-city-en" id="t-en"></span>
+      <span class="t-city-ja" id="t-ja"></span>
+    </div>
+    <div class="t-meta">
+      <span id="t-pf"></span>
+      <span class="t-meta-dot"></span>
+      <span id="t-tier-lbl"></span>
+    </div>
+  </div>
+  <div class="t-body">
+    <div>
+      <div class="t-stat-lbl">Population</div>
+      <div id="t-pop"></div>
+    </div>
+    <div>
+      <div class="t-stat-lbl">Median Price</div>
+      <div id="t-price"></div>
+      <div class="t-tier" id="t-dots"></div>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -363,16 +411,44 @@ document.addEventListener('mousemove', e => {{
   }});
   nearest = best;
   if(best){{
-    document.getElementById('t-en').textContent=best.en;
-    document.getElementById('t-ja').textContent=best.ja;
-    document.getElementById('t-pf').textContent=best.pref;
-    const lines=[];
-    if(best.pop)   lines.push('Pop: '+best.pop);
-    if(best.price) lines.push('Median: '+best.price);
-    document.getElementById('t-dt').textContent=lines.join('  ·  ');
+    document.getElementById('t-en').textContent = best.en;
+    document.getElementById('t-ja').textContent = best.ja;
+    document.getElementById('t-pf').textContent = best.pref + ' Prefecture';
+
+    // City tier label from radius
+    const tierLbl = best.r >= 3.8 ? 'Major City'
+                  : best.r >= 3.1 ? 'Large City'
+                  : best.r >= 2.4 ? 'City'
+                  : best.r >= 1.7 ? 'Town'
+                  : 'Small Town';
+    document.getElementById('t-tier-lbl').textContent = tierLbl;
+
+    // Population
+    const popEl = document.getElementById('t-pop');
+    if(best.pop) {{
+      const parts = best.pop.split('M');
+      popEl.innerHTML = `<span class="t-stat-num">${{best.pop}}</span>`;
+    }} else {{
+      popEl.innerHTML = '<span class="t-stat-num" style="color:rgba(150,200,255,.25)">—</span>';
+    }}
+
+    // Price + tier dots
+    const priceEl = document.getElementById('t-price');
+    const dotsEl  = document.getElementById('t-dots');
+    if(best.price) {{
+      const raw = parseFloat(best.price.replace('¥','').replace('K/m²',''));
+      const tier = raw > 400 ? 5 : raw > 180 ? 4 : raw > 100 ? 3 : raw > 60 ? 2 : 1;
+      const clean = best.price.replace('/m²','');
+      priceEl.innerHTML = `<span class="t-stat-num">${{clean}}</span><span class="t-stat-unit">/m²</span>`;
+      dotsEl.innerHTML  = [1,2,3,4,5].map(i=>`<div class="td ${{i<=tier?'on':'off'}}"></div>`).join('');
+    }} else {{
+      priceEl.innerHTML = '<span class="t-stat-num" style="color:rgba(150,200,255,.25)">—</span>';
+      dotsEl.innerHTML  = '';
+    }}
+
     tip.style.display='block';
-    const tx=mx+14+220>W?mx-228:mx+14;
-    const ty=my-72<0?my+8:my-72;
+    const tx = mx+16+260>W ? mx-266 : mx+16;
+    const ty = my-110<0    ? my+10  : my-110;
     tip.style.left=tx+'px'; tip.style.top=ty+'px';
   }}else{{
     tip.style.display='none';
