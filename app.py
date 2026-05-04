@@ -63,7 +63,7 @@ def _headline_stats() -> list[tuple[str, str]]:
     ]
 
 
-def _build_hero(stats: list[tuple[str, str]], height: int = 560) -> str:
+def _build_hero(stats: list[tuple[str, str]], height: int = 820) -> str:
     s0v, s0l = stats[0]
     s1v, s1l = stats[1]
     s2v, s2l = stats[2]
@@ -96,33 +96,33 @@ canvas {{ position:absolute; inset:0; display:block; }}
 }}
 
 /* Box 1 — title top-left */
-#b1 {{ left:3%; top:7%; width:38%; }}
+#b1 {{ left:2%; top:5%; width:30%; }}
 .eyebrow {{
   font-size:9px; font-weight:700; text-transform:uppercase;
   letter-spacing:.13em; color:#3B82F6; margin-bottom:9px;
 }}
 .htitle {{
-  font-size:22px; font-weight:800; color:#e8eaf6;
+  font-size:24px; font-weight:800; color:#e8eaf6;
   letter-spacing:-.02em; line-height:1.15; margin-bottom:10px;
 }}
 .hdesc {{
   font-size:11px; color:rgba(200,215,235,.60); line-height:1.65;
 }}
 
-/* Box 2 — key stats right-middle */
-#b2 {{ right:2%; top:34%; width:20%; display:flex; flex-direction:column; gap:12px; }}
+/* Box 2 — key stats right side */
+#b2 {{ right:2%; top:32%; width:16%; display:flex; flex-direction:column; gap:14px; }}
 .stat-block {{ }}
-.sv {{ font-size:26px; font-weight:800; color:#3B82F6; line-height:1; }}
+.sv {{ font-size:28px; font-weight:800; color:#3B82F6; line-height:1; }}
 .sl {{
   font-size:8px; font-weight:600; text-transform:uppercase;
   letter-spacing:.08em; color:rgba(200,215,235,.48); margin-top:3px;
   line-height:1.3;
 }}
-.sdiv {{ border-top:1px solid rgba(255,255,255,.08); margin:2px 0; }}
+.sdiv {{ border-top:1px solid rgba(255,255,255,.08); margin:4px 0; }}
 
 /* Box 3 — stats row bottom */
 #b3 {{
-  left:32%; bottom:5%; width:62%;
+  left:2%; bottom:4%; width:54%;
   display:flex; gap:0; align-items:flex-start;
   padding:14px 20px;
 }}
@@ -279,11 +279,16 @@ function ll(lat, lon)  {{ return proj((lon-123)/23, (46-lat)/22); }}
 function setup() {{
   W = canvas.width  = window.innerWidth;
   H = canvas.height = window.innerHeight;
-  scale  = (H * 0.78) / (B.yMax - B.yMin);
+  // Fit Japan to fill the canvas — constrained by whichever axis runs out first
+  const scaleH = (H * 0.88) / (B.yMax - B.yMin);
+  const scaleW = (W * 0.68) / (B.xMax - B.xMin);
+  scale = Math.min(scaleH, scaleW);
+  // Center horizontally, nudge 2% right so left has room for text boxes
   offX   = (W - (B.xMax-B.xMin)*scale) / 2 - B.xMin*scale + W*0.02;
-  offY   = H * 0.07 - B.yMin*scale;
-  LINK_D = scale * 0.16;
-  MOUSE_R = scale * 0.11;
+  // 6% top margin
+  offY   = H * 0.06 - B.yMin*scale;
+  LINK_D  = scale * 0.14;
+  MOUSE_R = scale * 0.09;
 
   particles = CITIES.map(([en,ja,pref,lat,lon,s,pop,price]) => {{
     const [x,y] = ll(lat,lon);
@@ -372,7 +377,7 @@ animate();
 
 # ── Render hero ────────────────────────────────────────────────────────────────
 stats = _headline_stats()
-components.html(_build_hero(stats), height=560, scrolling=False)
+components.html(_build_hero(stats), height=820, scrolling=False)
 
 feature_cards()
 footer("Home", "MLIT XIT001 API · Japan Housing and Land Survey · Statistics Bureau")
