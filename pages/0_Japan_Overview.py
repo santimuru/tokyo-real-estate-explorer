@@ -8,6 +8,7 @@ import requests
 import pandas as pd
 import plotly.express as px
 import streamlit as st
+from pathlib import Path
 
 from utils.styles import (
     inject_css, page_header, section_title, callout, kpi_card,
@@ -23,6 +24,8 @@ st.set_page_config(
 )
 inject_css()
 nav_sidebar()
+
+PARQUET_PATH = Path(__file__).resolve().parent.parent / "data" / "prefecture_aggregates.parquet"
 
 page_header(
     eyebrow="Japan Real Estate Intelligence · Japan Overview",
@@ -66,9 +69,6 @@ with st.sidebar:
 
 
 # ── Data ───────────────────────────────────────────────────────────────────────
-from pathlib import Path
-
-PARQUET_PATH = Path(__file__).resolve().parent.parent / "data" / "prefecture_aggregates.parquet"
 USE_API_AGGREGATES = PARQUET_PATH.exists()
 
 
