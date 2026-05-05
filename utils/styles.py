@@ -81,7 +81,6 @@ html, body, [class*="css"] {
 /* Kill the extra bottom space Streamlit appends after all content */
 section[data-testid="stMain"] {
     padding-bottom: 0 !important;
-    overflow: hidden;
 }
 footer { display: none !important; }
 /* Remove the auto gap Streamlit inserts for the fixed header */
