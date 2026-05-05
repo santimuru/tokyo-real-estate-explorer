@@ -118,33 +118,33 @@ button[kind="header"],
 /* ── Dark mode — OS ── */
 @media (prefers-color-scheme: dark) {
     :root {
-        --accent-faint:  rgba(59,130,246,0.15);
-        --surface:       #1E293B;
-        --surface-2:     #0F172A;
-        --surface-3:     #273548;
-        --border:        #334155;
-        --text-h:        #F1F5F9;
-        --text-body:     #CBD5E0;
-        --text-muted:    #94A3B8;
-        --text-faint:    #64748B;
-        --shadow:        0 1px 3px rgba(0,0,0,.3);
-        --shadow-md:     0 4px 12px rgba(0,0,0,.4);
+        --accent-faint:  rgba(59,130,246,0.10);
+        --surface:       rgba(255,255,255,.04);
+        --surface-2:     rgba(255,255,255,.02);
+        --surface-3:     rgba(59,130,246,.08);
+        --border:        rgba(59,130,246,.20);
+        --text-h:        #ffffff;
+        --text-body:     rgba(180,215,255,.78);
+        --text-muted:    rgba(140,185,235,.52);
+        --text-faint:    rgba(100,150,210,.38);
+        --shadow:        0 1px 8px rgba(0,0,0,.55);
+        --shadow-md:     0 4px 20px rgba(0,0,0,.65);
     }
 }
 
 /* ── Dark mode — Streamlit toggle ── */
 [data-theme="dark"] {
-    --accent-faint:  rgba(59,130,246,0.15);
-    --surface:       #1E293B;
-    --surface-2:     #0F172A;
-    --surface-3:     #273548;
-    --border:        #334155;
-    --text-h:        #F1F5F9;
-    --text-body:     #CBD5E0;
-    --text-muted:    #94A3B8;
-    --text-faint:    #64748B;
-    --shadow:        0 1px 3px rgba(0,0,0,.3);
-    --shadow-md:     0 4px 12px rgba(0,0,0,.4);
+    --accent-faint:  rgba(59,130,246,0.10);
+    --surface:       rgba(255,255,255,.04);
+    --surface-2:     rgba(255,255,255,.02);
+    --surface-3:     rgba(59,130,246,.08);
+    --border:        rgba(59,130,246,.20);
+    --text-h:        #ffffff;
+    --text-body:     rgba(180,215,255,.78);
+    --text-muted:    rgba(140,185,235,.52);
+    --text-faint:    rgba(100,150,210,.38);
+    --shadow:        0 1px 8px rgba(0,0,0,.55);
+    --shadow-md:     0 4px 20px rgba(0,0,0,.65);
 }
 
 /* ── Page header ── */
@@ -290,6 +290,22 @@ button[kind="header"],
     color: var(--accent) !important;
     border-bottom-color: var(--accent) !important;
 }
+
+/* ── Streamlit native widgets — dark overrides ── */
+/* Radio */
+.stRadio > label { color: rgba(140,185,235,.52) !important; font-size: 11px !important; font-weight: 600 !important; text-transform: uppercase !important; letter-spacing: .08em !important; }
+.stRadio [data-testid="stMarkdownContainer"] p { color: rgba(180,215,255,.78) !important; }
+/* Multiselect / Select */
+.stMultiSelect label, .stSelectbox label { color: rgba(140,185,235,.52) !important; font-size: 11px !important; font-weight: 600 !important; text-transform: uppercase !important; letter-spacing: .08em !important; }
+/* Dataframes */
+.stDataFrame { border: 1px solid rgba(59,130,246,.18) !important; border-radius: 8px !important; overflow: hidden; }
+/* Dividers */
+hr { border-color: rgba(59,130,246,.18) !important; }
+/* Streamlit generic text */
+p { color: rgba(180,215,255,.78); }
+h1, h2, h3 { color: #fff !important; }
+/* Selectbox dropdown */
+[data-baseweb="select"] { background: rgba(255,255,255,.04) !important; border-color: rgba(59,130,246,.25) !important; }
 
 /* ── Info badge (sidebar) ── */
 .info-badge {

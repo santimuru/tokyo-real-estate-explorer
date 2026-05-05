@@ -28,13 +28,14 @@ nav_top("overview")
 PARQUET_PATH = Path(__file__).resolve().parent.parent / "data" / "prefecture_aggregates.parquet"
 
 page_header(
-    eyebrow="Japan Real Estate Intelligence · Japan Overview",
-    title="Japan Real Estate — National View",
+    eyebrow="Japan Real Estate Intelligence · National Overview",
+    title="47 Prefectures. Where Is the Money Going?",
     desc=(
-        "Prefecture-level price maps, demographic trends, and the akiya vacancy crisis "
-        "across all 47 prefectures. Select a section below to explore."
+        "Tokyo trades at 17× the national median — but the real story is more nuanced. "
+        "Prices rose everywhere in 2020–2024, regional cities outpaced Tokyo in growth, "
+        "and 9 million homes now sit empty. This is the full picture."
     ),
-    badges=["47 Prefectures", "2015–2024", "Curated Estimates"],
+    badges=["47 Prefectures", "2015–2024", "MLIT + Housing Survey"],
 )
 
 _data_note_lines: list[str] = []
@@ -55,18 +56,6 @@ else:
         "&amp; Land Survey (2013/2018/2023). Population figures from the Statistics Bureau census."
     )
 callout("<br><br>".join(_data_note_lines))
-
-# ── Sidebar — data note ────────────────────────────────────────────────────────
-with st.sidebar:
-    st.markdown("""
-<div class="info-badge">
-    <strong>Data:</strong> Prefecture-level price estimates from MLIT aggregate reports
-    and REINS data (2015 / 2019 / 2024).<br><br>
-    <strong>Note:</strong> These are curated estimates — use City Comparison for
-    transaction-level MLIT API data.
-</div>
-""", unsafe_allow_html=True)
-
 
 # ── Data ───────────────────────────────────────────────────────────────────────
 USE_API_AGGREGATES = PARQUET_PATH.exists()
