@@ -640,7 +640,7 @@ def nav_top(current: str = "") -> None:
     """Top navigation bar. Pass current='overview'|'city'|'tokyo'|'about' to highlight active tab."""
     def _link(label: str, href: str, key: str) -> str:
         active = ' nav-active' if key == current else ''
-        return f'<a href="{href}" class="nav-lnk{active}">{label}</a>'
+        return f'<a href="{href}" target="_self" class="nav-lnk{active}">{label}</a>'
 
     st.markdown(f"""
 <style>
@@ -696,7 +696,7 @@ div[data-testid="stVerticalBlock"] {{ gap: 0 !important; }}
 div[data-testid="stMarkdownContainer"]:has(.app-nav) {{ margin-bottom: 0 !important; }}
 </style>
 <div class="app-nav">
-  <a class="nav-logo" href="/">Japan RE</a>
+  <a class="nav-logo" href="/" target="_self">Japan RE</a>
   {_link("Overview", "/Japan_Overview", "overview")}
   {_link("City Comparison", "/City_Comparison", "city")}
   {_link("Tokyo Deep Dive", "/Tokyo_Deep_Dive", "tokyo")}
