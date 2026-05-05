@@ -28,13 +28,13 @@ nav_top("overview")
 PARQUET_PATH = Path(__file__).resolve().parent.parent / "data" / "prefecture_aggregates.parquet"
 
 page_header(
-    eyebrow=”Japan Real Estate Intelligence · Japan Overview”,
-    title=”Japan Real Estate — National View”,
+    eyebrow="Japan Real Estate Intelligence · Japan Overview",
+    title="Japan Real Estate — National View",
     desc=(
         "Prefecture-level price maps, demographic trends, and the akiya vacancy crisis "
         "across all 47 prefectures. Select a section below to explore."
     ),
-    badges=[“47 Prefectures”, “2015–2024”, “Curated Estimates”],
+    badges=["47 Prefectures", "2015–2024", "Curated Estimates"],
 )
 
 _data_note_lines: list[str] = []
