@@ -10,3 +10,6 @@ env/
 .idea/
 *.log
 .streamlit/secrets.toml
+qa_check.py
+qa_runtime.py
+fix_quotes.ps1
