@@ -1,5 +1,5 @@
-"""
-City Comparison — compare real estate trends across Japanese cities using MLIT API data.
+﻿"""
+City Comparison â€” compare real estate trends across Japanese cities using MLIT API data.
 """
 from __future__ import annotations
 
@@ -10,37 +10,37 @@ import streamlit as st
 
 from utils.data_loader import load_city_data, MAJOR_CITIES
 from utils.analytics import format_jpy, format_ppm2
-from utils.styles import inject_css, page_header, section_title, callout, kpi_card, footer, plotly_base, year_ticks, nav_sidebar
+from utils.styles import inject_css, page_header, section_title, callout, kpi_card, footer, plotly_base, year_ticks, nav_top
 from utils.prefecture_data import NATIONAL_AVG_PPM2
 
-st.set_page_config(page_title="City Comparison · Japan RE", page_icon="🏙️", layout="wide", initial_sidebar_state="collapsed")
+st.set_page_config(page_title="City Comparison Â· Japan RE", page_icon="ðŸ™ï¸", layout="wide", initial_sidebar_state="collapsed")
 inject_css()
-nav_sidebar()
+nav_top("city")
 
 api_key = os.environ.get("MLIT_API_KEY", "")
 
 page_header(
-    eyebrow="Japan Real Estate Intelligence · City Comparison",
+    eyebrow="Japan Real Estate Intelligence Â· City Comparison",
     title="Compare Cities Side by Side",
     desc=(
         "Select 2 to 5 Japanese cities and compare their real estate markets using transaction-level "
         "data from the Ministry of Land, Infrastructure, Transport and Tourism (MLIT). "
-        "Each data point is an actual property transaction registered with the government — "
+        "Each data point is an actual property transaction registered with the government â€” "
         "not an index or estimate."
     ),
-    badges=["● Live MLIT API" if api_key else "Demo Data", "Up to 5 cities"],
+    badges=["â— Live MLIT API" if api_key else "Demo Data", "Up to 5 cities"],
 )
 
 if not api_key:
     callout(
-        "Live MLIT API key not configured — showing <strong>estimated placeholder data</strong> for illustration. "
+        "Live MLIT API key not configured â€” showing <strong>estimated placeholder data</strong> for illustration. "
         "Set the <code>MLIT_API_KEY</code> secret in Streamlit Cloud to enable real transaction data.",
         variant="neg",
     )
 
 city_names = list(MAJOR_CITIES.keys())
 selected_cities = st.multiselect(
-    "Select cities to compare (2–5)",
+    "Select cities to compare (2â€“5)",
     options=city_names,
     default=["Tokyo", "Osaka", "Fukuoka"],
     max_selections=5,
@@ -79,18 +79,18 @@ CITY_COLORS = ["#3B82F6", "#F59E0B", "#EF4444", "#8B5CF6", "#10B981"]
 city_frames: dict[str, pd.DataFrame] = {}
 cities_to_load = [c for c in selected_cities if api_key]
 if cities_to_load:
-    load_bar = st.progress(0, text="Loading city data from MLIT API…")
+    load_bar = st.progress(0, text="Loading city data from MLIT APIâ€¦")
 for idx, city in enumerate(selected_cities):
     if not api_key:
         city_frames[city] = _placeholder_df(city)
     else:
-        load_bar.progress((idx) / len(selected_cities), text=f"Loading {city} from MLIT API… ({idx+1}/{len(selected_cities)})")
+        load_bar.progress((idx) / len(selected_cities), text=f"Loading {city} from MLIT APIâ€¦ ({idx+1}/{len(selected_cities)})")
         try:
             df_city = _load_city(MAJOR_CITIES[city]["code"], city)
             df_city["city_name"] = city
             city_frames[city] = df_city
         except Exception as exc:
-            st.warning(f"Could not load {city}: {exc} — showing estimate instead.")
+            st.warning(f"Could not load {city}: {exc} â€” showing estimate instead.")
             city_frames[city] = _placeholder_df(city)
 if cities_to_load:
     load_bar.empty()
@@ -100,7 +100,7 @@ if not city_frames:
     st.stop()
 
 
-# ── KPI comparison ─────────────────────────────────────────────────────────────
+# â”€â”€ KPI comparison â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 section_title("Key metrics at a glance", "Latest available year vs prior year")
 kpi_cols = st.columns(len(selected_cities))
 city_medians: dict[str, int] = {}
@@ -117,14 +117,14 @@ for i, city in enumerate(selected_cities):
     yoy    = ((p_lat - p_prev) / p_prev * 100) if (p_prev and p_prev > 0) else 0.0
     city_medians[city] = med_ppm2
     with kpi_cols[i]:
-        kpi_card(city, format_ppm2(med_ppm2), f"Median {format_jpy(med_price)} · YoY {yoy:+.1f}%", accent=(i == 0))
+        kpi_card(city, format_ppm2(med_ppm2), f"Median {format_jpy(med_price)} Â· YoY {yoy:+.1f}%", accent=(i == 0))
         st.caption(f"{n_tx:,} transactions")
 
 
-# ── Price trend ────────────────────────────────────────────────────────────────
+# â”€â”€ Price trend â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 section_title(
     "Price trend comparison",
-    "Median ¥/m² per quarter. Only year labels shown on the axis to keep it readable.",
+    "Median Â¥/mÂ² per quarter. Only year labels shown on the axis to keep it readable.",
 )
 
 all_trends = []
@@ -145,7 +145,7 @@ tick_vals, tick_texts = year_ticks(all_periods)
 base, grid, _ = plotly_base(380)
 fig_trend = px.line(
     combined_trend, x="tx_period", y="median_ppm2", color="city_name", markers=True,
-    labels={"tx_period": "", "median_ppm2": "Median ¥/m²", "city_name": ""},
+    labels={"tx_period": "", "median_ppm2": "Median Â¥/mÂ²", "city_name": ""},
     color_discrete_sequence=CITY_COLORS,
 )
 fig_trend.update_layout(
@@ -154,15 +154,15 @@ fig_trend.update_layout(
 )
 fig_trend.update_xaxes(tickvals=tick_vals, ticktext=tick_texts, showgrid=False)
 fig_trend.update_yaxes(gridcolor=grid, tickformat=",.0f")
-fig_trend.update_traces(hovertemplate="%{fullData.name}<br>%{x}<br>¥/m²: %{y:,.0f}<extra></extra>")
+fig_trend.update_traces(hovertemplate="%{fullData.name}<br>%{x}<br>Â¥/mÂ²: %{y:,.0f}<extra></extra>")
 st.plotly_chart(fig_trend, use_container_width=True, config={"scrollZoom": False, "doubleClick": False, "displayModeBar": False})
 
 
-# ── Bar + property type ────────────────────────────────────────────────────────
+# â”€â”€ Bar + property type â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 col_left, col_right = st.columns(2)
 
 with col_left:
-    section_title("Median ¥/m² by city", "Latest full year")
+    section_title("Median Â¥/mÂ² by city", "Latest full year")
     bar_data = []
     for city in selected_cities:
         df_c = city_frames[city]
@@ -176,12 +176,12 @@ with col_left:
         bar_df, x="median_ppm2", y="city", orientation="h",
         color="median_ppm2",
         color_continuous_scale=["#BFDBFE", "#3B82F6", "#1D4ED8"],
-        labels={"median_ppm2": "¥/m²", "city": ""},
+        labels={"median_ppm2": "Â¥/mÂ²", "city": ""},
     )
     fig_bar.update_layout(**base2)
     fig_bar.update_coloraxes(showscale=False)
     fig_bar.update_xaxes(gridcolor=grid2, tickformat=",.0f")
-    fig_bar.update_traces(hovertemplate="%{y}<br>¥/m²: %{x:,.0f}<extra></extra>")
+    fig_bar.update_traces(hovertemplate="%{y}<br>Â¥/mÂ²: %{x:,.0f}<extra></extra>")
     st.plotly_chart(fig_bar, use_container_width=True, config={"scrollZoom": False, "doubleClick": False, "displayModeBar": False})
 
 with col_right:
@@ -210,16 +210,16 @@ with col_right:
     st.plotly_chart(fig_type, use_container_width=True, config={"scrollZoom": False, "doubleClick": False, "displayModeBar": False})
 
 
-# ── Auto insight ───────────────────────────────────────────────────────────────
+# â”€â”€ Auto insight â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 if "Tokyo" in city_medians:
     tokyo_ppm2    = city_medians["Tokyo"]
     cheapest_city = min(city_medians, key=city_medians.get)
     cheapest_ppm2 = city_medians[cheapest_city]
     nat_avg       = NATIONAL_AVG_PPM2[2024]
     callout(
-        f"Tokyo's median ¥/m² (<strong>{format_ppm2(tokyo_ppm2)}</strong>) is "
-        f"<strong>{tokyo_ppm2/nat_avg:.1f}×</strong> the national average and "
-        f"<strong>{tokyo_ppm2/cheapest_ppm2:.1f}×</strong> that of the most affordable city in this comparison "
+        f"Tokyo's median Â¥/mÂ² (<strong>{format_ppm2(tokyo_ppm2)}</strong>) is "
+        f"<strong>{tokyo_ppm2/nat_avg:.1f}Ã—</strong> the national average and "
+        f"<strong>{tokyo_ppm2/cheapest_ppm2:.1f}Ã—</strong> that of the most affordable city in this comparison "
         f"(<strong>{cheapest_city}</strong> at {format_ppm2(cheapest_ppm2)})."
     )
 elif city_medians:
@@ -227,7 +227,7 @@ elif city_medians:
     cheapest  = min(city_medians, key=city_medians.get)
     callout(
         f"<strong>{most_exp}</strong> leads this comparison at {format_ppm2(city_medians[most_exp])}, "
-        f"which is <strong>{city_medians[most_exp]/city_medians[cheapest]:.1f}×</strong> the median of "
+        f"which is <strong>{city_medians[most_exp]/city_medians[cheapest]:.1f}Ã—</strong> the median of "
         f"<strong>{cheapest}</strong> ({format_ppm2(city_medians[cheapest])})."
     )
 

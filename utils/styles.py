@@ -65,16 +65,37 @@ def inject_css() -> None:
 html, body, [class*="css"] {
     font-family: 'Inter', sans-serif !important;
 }
-/* Streamlit's default top toolbar — keep transparent but don't collapse to 0
-   (collapsing made Share/menu buttons overlap page content) */
-[data-testid="stHeader"] { background: transparent !important; }
+/* Match page background to hero canvas so any leftover space is invisible */
+[data-testid="stAppViewContainer"] {
+    background: #080808 !important;
+}
+/* Streamlit header — hidden entirely, replaced by our sticky nav */
+[data-testid="stHeader"] {
+    display: none !important;
+}
 .main .block-container {
-    padding-top: 0.25rem !important;
-    padding-bottom: 3rem;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
     max-width: 1440px;
+}
+/* Kill the extra bottom space Streamlit appends after all content */
+section[data-testid="stMain"] {
+    padding-bottom: 0 !important;
+    overflow: hidden;
+}
+footer { display: none !important; }
+/* Remove the auto gap Streamlit inserts for the fixed header */
+section[data-testid="stMain"] > div:first-child {
+    padding-top: 0 !important;
 }
 /* Hide Streamlit's auto-generated sidebar nav (shows raw filenames) */
 [data-testid="stSidebarNav"] { display: none !important; }
+/* Hide sidebar and toggle completely */
+[data-testid="collapsedControl"],
+[data-testid="stSidebar"],
+section[data-testid="stSidebar"],
+button[kind="header"],
+.st-emotion-cache-czk5ss { display: none !important; }
 
 /* ── Design tokens — light ── */
 :root {
@@ -459,13 +480,14 @@ html, body, [class*="css"] {
 
 /* ── Footer ── */
 .app-footer {
-    margin-top: 4rem;
-    padding-top: 1.5rem;
+    margin-top: 0.5rem;
+    padding-top: 0.75rem;
+    padding-bottom: 0.75rem;
     border-top: 1px solid var(--border);
     font-size: 0.75rem;
     color: var(--text-faint);
     text-align: center;
-    line-height: 2;
+    line-height: 1.8;
 }
 .app-footer a { color: var(--accent); text-decoration: none; }
 .app-footer a:hover { text-decoration: underline; }
@@ -610,15 +632,77 @@ def platform_hero(stats: list[tuple[str, str]] | None = None) -> None:
 
 
 def nav_sidebar() -> None:
-    """Custom sidebar navigation — replaces Streamlit's filename-based nav."""
-    with st.sidebar:
-        st.page_link("app.py", label="Japan RE Intelligence", icon="🗾", use_container_width=True)
-        st.markdown("<hr style='margin:0.35rem 0 0.7rem; border-color:var(--border);'>", unsafe_allow_html=True)
-        st.page_link("pages/0_Japan_Overview.py",   label="Japan Overview",  icon="🗾")
-        st.page_link("pages/1_City_Comparison.py",  label="City Comparison", icon="🏙️")
-        st.page_link("pages/2_Tokyo_Deep_Dive.py",  label="Tokyo Deep Dive", icon="🗼")
-        st.markdown("<hr style='margin:0.75rem 0; border-color:var(--border);'>", unsafe_allow_html=True)
-        st.page_link("pages/3_About.py", label="About & Methodology", icon="ℹ️")
+    """No-op: sidebar replaced by top nav bar."""
+    pass
+
+
+def nav_top(current: str = "") -> None:
+    """Top navigation bar. Pass current='overview'|'city'|'tokyo'|'about' to highlight active tab."""
+    def _link(label: str, href: str, key: str) -> str:
+        active = ' nav-active' if key == current else ''
+        return f'<a href="{href}" class="nav-lnk{active}">{label}</a>'
+
+    st.markdown(f"""
+<style>
+.app-nav {{
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 36px;
+    height: 72px;
+    background: rgba(8,12,22,0.97);
+    border-bottom: 1px solid rgba(59,130,246,.18);
+    position: sticky;
+    top: 0;
+    z-index: 9999;
+    margin-bottom: 0;
+}}
+.app-nav .nav-logo {{
+    font-size: 15px;
+    font-weight: 800;
+    letter-spacing: .22em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,.95);
+    text-decoration: none;
+    margin-right: 20px;
+    white-space: nowrap;
+}}
+.app-nav .nav-lnk {{
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .11em;
+    color: rgba(160,200,240,.65);
+    text-decoration: none;
+    white-space: nowrap;
+    padding: 5px 14px;
+    border: 1px solid rgba(59,130,246,.25);
+    border-radius: 4px;
+    background: rgba(59,130,246,.05);
+    transition: color .15s, border-color .15s, background .15s;
+}}
+.app-nav .nav-lnk:hover {{
+    color: rgba(255,255,255,.95);
+    border-color: rgba(96,165,250,.70);
+    background: rgba(59,130,246,.15);
+}}
+.app-nav .nav-lnk.nav-active {{
+    color: #fff;
+    border-color: #3B82F6;
+    background: rgba(59,130,246,.22);
+}}
+/* Remove gap between nav and hero only */
+div[data-testid="stVerticalBlock"] {{ gap: 0 !important; }}
+div[data-testid="stMarkdownContainer"]:has(.app-nav) {{ margin-bottom: 0 !important; }}
+</style>
+<div class="app-nav">
+  <a class="nav-logo" href="/">Japan RE</a>
+  {_link("Overview", "/Japan_Overview", "overview")}
+  {_link("City Comparison", "/City_Comparison", "city")}
+  {_link("Tokyo Deep Dive", "/Tokyo_Deep_Dive", "tokyo")}
+  {_link("About", "/About", "about")}
+</div>
+""", unsafe_allow_html=True)
 
 
 def footer(page_name: str, source: str = "MLIT Real Estate Information Library") -> None:
