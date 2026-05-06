@@ -23,7 +23,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from utils.data_loader import _classify_property_type, _last_available_period  # noqa: E402
 
 API_URL = "https://www.reinfolib.mlit.go.jp/ex-api/external/XIT001"
-START_YEAR = 2020
+START_YEAR = 2024
 PREF_CODES = [f"{i:02d}" for i in range(1, 48)]  # "01" .. "47"
 OUTPUT = Path(__file__).resolve().parent.parent / "data" / "prefecture_aggregates.parquet"
 

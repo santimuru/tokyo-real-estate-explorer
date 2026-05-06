@@ -33,27 +33,17 @@ def _headline_stats() -> list[tuple[str, str]]:
     df = get_all_as_df()
     high_akiya = int((df["akiya_rate_2023"] >= 20).sum())
 
-    if PARQUET.exists():
-        agg = pd.read_parquet(PARQUET)
-        agg["prefecture_code"] = agg["prefecture_code"].astype(str).str.zfill(2)
-        a20 = agg[agg["tx_year"] == 2020].set_index("prefecture_code")["median_ppm2"]
-        a24 = agg[agg["tx_year"] == 2024].set_index("prefecture_code")["median_ppm2"]
-        tokyo_growth   = (a24["13"] - a20["13"]) / a20["13"] * 100
-        joined         = pd.concat([a20.rename("p20"), a24.rename("p24")], axis=1).dropna()
-        nat_growth_med = ((joined["p24"] - joined["p20"]) / joined["p20"] * 100).median()
-        tokyo_premium  = a24["13"] / a24.median()
-        window_label   = "2020-2024"
-    else:
-        df["price_change_pct"] = (
-            (df["price_ppm2_2024"] - df["price_ppm2_2015"]) / df["price_ppm2_2015"] * 100
-        )
-        tokyo_growth   = df.loc[df["name_en"] == "Tokyo", "price_change_pct"].iloc[0]
-        nat_growth_med = df["price_change_pct"].median()
-        tokyo_premium  = (
-            df.loc[df["name_en"] == "Tokyo", "price_ppm2_2024"].iloc[0]
-            / df["price_ppm2_2024"].median()
-        )
-        window_label   = "2015-2024"
+    agg = pd.read_parquet(PARQUET)
+    agg["prefecture_code"] = agg["prefecture_code"].astype(str).str.zfill(2)
+    years = sorted(agg["tx_year"].unique())
+    first_yr, last_yr = years[0], years[-1]
+    a_first = agg[agg["tx_year"] == first_yr].set_index("prefecture_code")["median_ppm2"]
+    a_last  = agg[agg["tx_year"] == last_yr].set_index("prefecture_code")["median_ppm2"]
+    tokyo_growth   = (a_last["13"] - a_first["13"]) / a_first["13"] * 100
+    joined         = pd.concat([a_first.rename("p0"), a_last.rename("p1")], axis=1).dropna()
+    nat_growth_med = ((joined["p1"] - joined["p0"]) / joined["p0"] * 100).median()
+    tokyo_premium  = a_last["13"] / a_last.median()
+    window_label   = f"{first_yr}-{last_yr}"
 
     return [
         (f"+{tokyo_growth:.0f}%",

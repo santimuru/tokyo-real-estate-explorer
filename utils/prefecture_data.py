@@ -6,15 +6,13 @@ PREFECTURES = {
         "lat": 43.06, "lon": 141.35,
         "pop_2020": 5.22, "pop_2010": 5.51, "pop_change_pct": round((5.22 - 5.51) / 5.51 * 100, 2),
         "akiya_rate_2023": 13.5, "akiya_rate_2018": 13.6, "akiya_rate_2013": 13.2,
-        "price_index": 0.52, "price_ppm2_2024": 208000, "price_ppm2_2019": 180000, "price_ppm2_2015": 155000,
-        "is_major_metro": True,
+                "is_major_metro": True,
     },
     2: {
         "name_en": "Aomori", "name_ja": "青森県", "capital": "Aomori", "region": "Tohoku",
         "lat": 40.82, "lon": 140.74,
         "pop_2020": 1.24, "pop_2010": 1.37, "pop_change_pct": round((1.24 - 1.37) / 1.37 * 100, 2),
         "akiya_rate_2023": 16.6, "akiya_rate_2018": 16.4, "akiya_rate_2013": 15.2,
-        "price_index": 0.28, "price_ppm2_2024": 112000, "price_ppm2_2019": 98000, "price_ppm2_2015": 88000,
         "is_major_metro": False,
     },
     3: {
@@ -22,7 +20,6 @@ PREFECTURES = {
         "lat": 39.70, "lon": 141.15,
         "pop_2020": 1.21, "pop_2010": 1.33, "pop_change_pct": round((1.21 - 1.33) / 1.33 * 100, 2),
         "akiya_rate_2023": 14.7, "akiya_rate_2018": 14.9, "akiya_rate_2013": 14.0,
-        "price_index": 0.29, "price_ppm2_2024": 116000, "price_ppm2_2019": 102000, "price_ppm2_2015": 92000,
         "is_major_metro": False,
     },
     4: {
@@ -30,7 +27,6 @@ PREFECTURES = {
         "lat": 38.27, "lon": 140.87,
         "pop_2020": 2.30, "pop_2010": 2.35, "pop_change_pct": round((2.30 - 2.35) / 2.35 * 100, 2),
         "akiya_rate_2023": 13.0, "akiya_rate_2018": 13.2, "akiya_rate_2013": 12.8,
-        "price_index": 0.43, "price_ppm2_2024": 172000, "price_ppm2_2019": 150000, "price_ppm2_2015": 135000,
         "is_major_metro": True,
     },
     5: {
@@ -38,7 +34,6 @@ PREFECTURES = {
         "lat": 39.72, "lon": 140.10,
         "pop_2020": 0.96, "pop_2010": 1.09, "pop_change_pct": round((0.96 - 1.09) / 1.09 * 100, 2),
         "akiya_rate_2023": 21.7, "akiya_rate_2018": 21.4, "akiya_rate_2013": 20.2,
-        "price_index": 0.24, "price_ppm2_2024": 96000, "price_ppm2_2019": 85000, "price_ppm2_2015": 78000,
         "is_major_metro": False,
     },
     6: {
@@ -46,7 +41,6 @@ PREFECTURES = {
         "lat": 38.24, "lon": 140.36,
         "pop_2020": 1.07, "pop_2010": 1.17, "pop_change_pct": round((1.07 - 1.17) / 1.17 * 100, 2),
         "akiya_rate_2023": 16.6, "akiya_rate_2018": 16.1, "akiya_rate_2013": 15.8,
-        "price_index": 0.26, "price_ppm2_2024": 104000, "price_ppm2_2019": 92000, "price_ppm2_2015": 84000,
         "is_major_metro": False,
     },
     7: {
@@ -54,7 +48,6 @@ PREFECTURES = {
         "lat": 37.75, "lon": 140.47,
         "pop_2020": 1.83, "pop_2010": 2.03, "pop_change_pct": round((1.83 - 2.03) / 2.03 * 100, 2),
         "akiya_rate_2023": 17.3, "akiya_rate_2018": 16.9, "akiya_rate_2013": 15.4,
-        "price_index": 0.29, "price_ppm2_2024": 116000, "price_ppm2_2019": 102000, "price_ppm2_2015": 92000,
         "is_major_metro": False,
     },
     8: {
@@ -62,7 +55,6 @@ PREFECTURES = {
         "lat": 36.34, "lon": 140.45,
         "pop_2020": 2.87, "pop_2010": 2.97, "pop_change_pct": round((2.87 - 2.97) / 2.97 * 100, 2),
         "akiya_rate_2023": 14.6, "akiya_rate_2018": 14.8, "akiya_rate_2013": 14.0,
-        "price_index": 0.32, "price_ppm2_2024": 128000, "price_ppm2_2019": 112000, "price_ppm2_2015": 100000,
         "is_major_metro": False,
     },
     9: {
@@ -70,7 +62,6 @@ PREFECTURES = {
         "lat": 36.57, "lon": 139.88,
         "pop_2020": 1.93, "pop_2010": 2.01, "pop_change_pct": round((1.93 - 2.01) / 2.01 * 100, 2),
         "akiya_rate_2023": 14.8, "akiya_rate_2018": 14.7, "akiya_rate_2013": 14.2,
-        "price_index": 0.33, "price_ppm2_2024": 132000, "price_ppm2_2019": 115000, "price_ppm2_2015": 103000,
         "is_major_metro": False,
     },
     10: {
@@ -78,7 +69,6 @@ PREFECTURES = {
         "lat": 36.39, "lon": 139.06,
         "pop_2020": 1.94, "pop_2010": 2.01, "pop_change_pct": round((1.94 - 2.01) / 2.01 * 100, 2),
         "akiya_rate_2023": 16.4, "akiya_rate_2018": 16.3, "akiya_rate_2013": 15.8,
-        "price_index": 0.31, "price_ppm2_2024": 124000, "price_ppm2_2019": 108000, "price_ppm2_2015": 97000,
         "is_major_metro": False,
     },
     11: {
@@ -86,7 +76,6 @@ PREFECTURES = {
         "lat": 35.86, "lon": 139.65,
         "pop_2020": 7.34, "pop_2010": 7.19, "pop_change_pct": round((7.34 - 7.19) / 7.19 * 100, 2),
         "akiya_rate_2023": 10.2, "akiya_rate_2018": 10.6, "akiya_rate_2013": 10.4,
-        "price_index": 0.68, "price_ppm2_2024": 272000, "price_ppm2_2019": 236000, "price_ppm2_2015": 208000,
         "is_major_metro": True,
     },
     12: {
@@ -94,7 +83,6 @@ PREFECTURES = {
         "lat": 35.60, "lon": 140.12,
         "pop_2020": 6.28, "pop_2010": 6.22, "pop_change_pct": round((6.28 - 6.22) / 6.22 * 100, 2),
         "akiya_rate_2023": 11.9, "akiya_rate_2018": 12.1, "akiya_rate_2013": 11.8,
-        "price_index": 0.63, "price_ppm2_2024": 252000, "price_ppm2_2019": 218000, "price_ppm2_2015": 192000,
         "is_major_metro": True,
     },
     13: {
@@ -102,7 +90,6 @@ PREFECTURES = {
         "lat": 35.69, "lon": 139.69,
         "pop_2020": 13.96, "pop_2010": 13.16, "pop_change_pct": round((13.96 - 13.16) / 13.16 * 100, 2),
         "akiya_rate_2023": 10.6, "akiya_rate_2018": 10.9, "akiya_rate_2013": 10.9,
-        "price_index": 1.90, "price_ppm2_2024": 760000, "price_ppm2_2019": 620000, "price_ppm2_2015": 530000,
         "is_major_metro": True,
     },
     14: {
@@ -110,7 +97,6 @@ PREFECTURES = {
         "lat": 35.45, "lon": 139.64,
         "pop_2020": 9.24, "pop_2010": 9.05, "pop_change_pct": round((9.24 - 9.05) / 9.05 * 100, 2),
         "akiya_rate_2023": 10.1, "akiya_rate_2018": 10.4, "akiya_rate_2013": 10.3,
-        "price_index": 0.95, "price_ppm2_2024": 380000, "price_ppm2_2019": 325000, "price_ppm2_2015": 285000,
         "is_major_metro": True,
     },
     15: {
@@ -118,7 +104,6 @@ PREFECTURES = {
         "lat": 37.91, "lon": 139.02,
         "pop_2020": 2.20, "pop_2010": 2.37, "pop_change_pct": round((2.20 - 2.37) / 2.37 * 100, 2),
         "akiya_rate_2023": 16.2, "akiya_rate_2018": 16.3, "akiya_rate_2013": 15.8,
-        "price_index": 0.29, "price_ppm2_2024": 116000, "price_ppm2_2019": 102000, "price_ppm2_2015": 92000,
         "is_major_metro": False,
     },
     16: {
@@ -126,7 +111,6 @@ PREFECTURES = {
         "lat": 36.70, "lon": 137.21,
         "pop_2020": 1.04, "pop_2010": 1.09, "pop_change_pct": round((1.04 - 1.09) / 1.09 * 100, 2),
         "akiya_rate_2023": 11.3, "akiya_rate_2018": 11.2, "akiya_rate_2013": 10.8,
-        "price_index": 0.29, "price_ppm2_2024": 116000, "price_ppm2_2019": 102000, "price_ppm2_2015": 92000,
         "is_major_metro": False,
     },
     17: {
@@ -134,7 +118,6 @@ PREFECTURES = {
         "lat": 36.59, "lon": 136.63,
         "pop_2020": 1.13, "pop_2010": 1.17, "pop_change_pct": round((1.13 - 1.17) / 1.17 * 100, 2),
         "akiya_rate_2023": 11.7, "akiya_rate_2018": 11.7, "akiya_rate_2013": 11.3,
-        "price_index": 0.36, "price_ppm2_2024": 144000, "price_ppm2_2019": 125000, "price_ppm2_2015": 112000,
         "is_major_metro": False,
     },
     18: {
@@ -142,7 +125,6 @@ PREFECTURES = {
         "lat": 36.07, "lon": 136.22,
         "pop_2020": 0.77, "pop_2010": 0.81, "pop_change_pct": round((0.77 - 0.81) / 0.81 * 100, 2),
         "akiya_rate_2023": 11.7, "akiya_rate_2018": 11.3, "akiya_rate_2013": 10.9,
-        "price_index": 0.31, "price_ppm2_2024": 124000, "price_ppm2_2019": 108000, "price_ppm2_2015": 97000,
         "is_major_metro": False,
     },
     19: {
@@ -150,7 +132,6 @@ PREFECTURES = {
         "lat": 35.66, "lon": 138.57,
         "pop_2020": 0.81, "pop_2010": 0.86, "pop_change_pct": round((0.81 - 0.86) / 0.86 * 100, 2),
         "akiya_rate_2023": 21.3, "akiya_rate_2018": 21.2, "akiya_rate_2013": 20.3,
-        "price_index": 0.36, "price_ppm2_2024": 144000, "price_ppm2_2019": 125000, "price_ppm2_2015": 112000,
         "is_major_metro": False,
     },
     20: {
@@ -158,7 +139,6 @@ PREFECTURES = {
         "lat": 36.65, "lon": 138.18,
         "pop_2020": 2.05, "pop_2010": 2.15, "pop_change_pct": round((2.05 - 2.15) / 2.15 * 100, 2),
         "akiya_rate_2023": 22.0, "akiya_rate_2018": 21.9, "akiya_rate_2013": 21.1,
-        "price_index": 0.37, "price_ppm2_2024": 148000, "price_ppm2_2019": 128000, "price_ppm2_2015": 115000,
         "is_major_metro": False,
     },
     21: {
@@ -166,7 +146,6 @@ PREFECTURES = {
         "lat": 35.39, "lon": 136.72,
         "pop_2020": 1.98, "pop_2010": 2.08, "pop_change_pct": round((1.98 - 2.08) / 2.08 * 100, 2),
         "akiya_rate_2023": 16.5, "akiya_rate_2018": 16.5, "akiya_rate_2013": 16.2,
-        "price_index": 0.34, "price_ppm2_2024": 136000, "price_ppm2_2019": 118000, "price_ppm2_2015": 106000,
         "is_major_metro": False,
     },
     22: {
@@ -174,7 +153,6 @@ PREFECTURES = {
         "lat": 34.98, "lon": 138.38,
         "pop_2020": 3.63, "pop_2010": 3.77, "pop_change_pct": round((3.63 - 3.77) / 3.77 * 100, 2),
         "akiya_rate_2023": 16.4, "akiya_rate_2018": 16.1, "akiya_rate_2013": 15.6,
-        "price_index": 0.44, "price_ppm2_2024": 176000, "price_ppm2_2019": 153000, "price_ppm2_2015": 137000,
         "is_major_metro": False,
     },
     23: {
@@ -182,7 +160,6 @@ PREFECTURES = {
         "lat": 35.18, "lon": 136.91,
         "pop_2020": 7.54, "pop_2010": 7.41, "pop_change_pct": round((7.54 - 7.41) / 7.41 * 100, 2),
         "akiya_rate_2023": 11.1, "akiya_rate_2018": 11.5, "akiya_rate_2013": 11.4,
-        "price_index": 0.68, "price_ppm2_2024": 272000, "price_ppm2_2019": 236000, "price_ppm2_2015": 208000,
         "is_major_metro": True,
     },
     24: {
@@ -190,7 +167,6 @@ PREFECTURES = {
         "lat": 34.73, "lon": 136.51,
         "pop_2020": 1.77, "pop_2010": 1.85, "pop_change_pct": round((1.77 - 1.85) / 1.85 * 100, 2),
         "akiya_rate_2023": 14.3, "akiya_rate_2018": 14.3, "akiya_rate_2013": 14.2,
-        "price_index": 0.34, "price_ppm2_2024": 136000, "price_ppm2_2019": 118000, "price_ppm2_2015": 106000,
         "is_major_metro": False,
     },
     25: {
@@ -198,7 +174,6 @@ PREFECTURES = {
         "lat": 35.00, "lon": 135.87,
         "pop_2020": 1.41, "pop_2010": 1.41, "pop_change_pct": round((1.41 - 1.41) / 1.41 * 100, 2),
         "akiya_rate_2023": 11.3, "akiya_rate_2018": 11.0, "akiya_rate_2013": 10.9,
-        "price_index": 0.42, "price_ppm2_2024": 168000, "price_ppm2_2019": 146000, "price_ppm2_2015": 130000,
         "is_major_metro": False,
     },
     26: {
@@ -206,7 +181,6 @@ PREFECTURES = {
         "lat": 35.02, "lon": 135.76,
         "pop_2020": 2.58, "pop_2010": 2.64, "pop_change_pct": round((2.58 - 2.64) / 2.64 * 100, 2),
         "akiya_rate_2023": 14.3, "akiya_rate_2018": 14.0, "akiya_rate_2013": 13.6,
-        "price_index": 0.75, "price_ppm2_2024": 300000, "price_ppm2_2019": 258000, "price_ppm2_2015": 228000,
         "is_major_metro": True,
     },
     27: {
@@ -214,7 +188,6 @@ PREFECTURES = {
         "lat": 34.69, "lon": 135.50,
         "pop_2020": 8.84, "pop_2010": 8.87, "pop_change_pct": round((8.84 - 8.87) / 8.87 * 100, 2),
         "akiya_rate_2023": 14.3, "akiya_rate_2018": 14.5, "akiya_rate_2013": 14.2,
-        "price_index": 0.78, "price_ppm2_2024": 312000, "price_ppm2_2019": 268000, "price_ppm2_2015": 235000,
         "is_major_metro": True,
     },
     28: {
@@ -222,7 +195,6 @@ PREFECTURES = {
         "lat": 34.69, "lon": 135.18,
         "pop_2020": 5.47, "pop_2010": 5.59, "pop_change_pct": round((5.47 - 5.59) / 5.59 * 100, 2),
         "akiya_rate_2023": 13.3, "akiya_rate_2018": 13.4, "akiya_rate_2013": 13.1,
-        "price_index": 0.59, "price_ppm2_2024": 236000, "price_ppm2_2019": 204000, "price_ppm2_2015": 180000,
         "is_major_metro": True,
     },
     29: {
@@ -230,7 +202,6 @@ PREFECTURES = {
         "lat": 34.69, "lon": 135.83,
         "pop_2020": 1.32, "pop_2010": 1.40, "pop_change_pct": round((1.32 - 1.40) / 1.40 * 100, 2),
         "akiya_rate_2023": 17.9, "akiya_rate_2018": 18.3, "akiya_rate_2013": 17.9,
-        "price_index": 0.44, "price_ppm2_2024": 176000, "price_ppm2_2019": 153000, "price_ppm2_2015": 137000,
         "is_major_metro": False,
     },
     30: {
@@ -238,7 +209,6 @@ PREFECTURES = {
         "lat": 34.23, "lon": 135.17,
         "pop_2020": 0.92, "pop_2010": 1.00, "pop_change_pct": round((0.92 - 1.00) / 1.00 * 100, 2),
         "akiya_rate_2023": 21.2, "akiya_rate_2018": 21.3, "akiya_rate_2013": 20.1,
-        "price_index": 0.31, "price_ppm2_2024": 124000, "price_ppm2_2019": 108000, "price_ppm2_2015": 97000,
         "is_major_metro": False,
     },
     31: {
@@ -246,7 +216,6 @@ PREFECTURES = {
         "lat": 35.50, "lon": 134.24,
         "pop_2020": 0.55, "pop_2010": 0.59, "pop_change_pct": round((0.55 - 0.59) / 0.59 * 100, 2),
         "akiya_rate_2023": 13.8, "akiya_rate_2018": 13.8, "akiya_rate_2013": 13.6,
-        "price_index": 0.23, "price_ppm2_2024": 92000, "price_ppm2_2019": 81000, "price_ppm2_2015": 73000,
         "is_major_metro": False,
     },
     32: {
@@ -254,7 +223,6 @@ PREFECTURES = {
         "lat": 35.47, "lon": 133.05,
         "pop_2020": 0.67, "pop_2010": 0.72, "pop_change_pct": round((0.67 - 0.72) / 0.72 * 100, 2),
         "akiya_rate_2023": 16.6, "akiya_rate_2018": 16.4, "akiya_rate_2013": 16.0,
-        "price_index": 0.24, "price_ppm2_2024": 96000, "price_ppm2_2019": 85000, "price_ppm2_2015": 76000,
         "is_major_metro": False,
     },
     33: {
@@ -262,7 +230,6 @@ PREFECTURES = {
         "lat": 34.66, "lon": 133.93,
         "pop_2020": 1.89, "pop_2010": 1.95, "pop_change_pct": round((1.89 - 1.95) / 1.95 * 100, 2),
         "akiya_rate_2023": 14.5, "akiya_rate_2018": 14.3, "akiya_rate_2013": 13.8,
-        "price_index": 0.38, "price_ppm2_2024": 152000, "price_ppm2_2019": 132000, "price_ppm2_2015": 118000,
         "is_major_metro": False,
     },
     34: {
@@ -270,7 +237,6 @@ PREFECTURES = {
         "lat": 34.40, "lon": 132.46,
         "pop_2020": 2.80, "pop_2010": 2.86, "pop_change_pct": round((2.80 - 2.86) / 2.86 * 100, 2),
         "akiya_rate_2023": 13.5, "akiya_rate_2018": 13.5, "akiya_rate_2013": 13.0,
-        "price_index": 0.51, "price_ppm2_2024": 204000, "price_ppm2_2019": 177000, "price_ppm2_2015": 158000,
         "is_major_metro": True,
     },
     35: {
@@ -278,7 +244,6 @@ PREFECTURES = {
         "lat": 34.19, "lon": 131.47,
         "pop_2020": 1.34, "pop_2010": 1.45, "pop_change_pct": round((1.34 - 1.45) / 1.45 * 100, 2),
         "akiya_rate_2023": 16.7, "akiya_rate_2018": 16.5, "akiya_rate_2013": 15.8,
-        "price_index": 0.31, "price_ppm2_2024": 124000, "price_ppm2_2019": 108000, "price_ppm2_2015": 97000,
         "is_major_metro": False,
     },
     36: {
@@ -286,7 +251,6 @@ PREFECTURES = {
         "lat": 34.07, "lon": 134.56,
         "pop_2020": 0.72, "pop_2010": 0.78, "pop_change_pct": round((0.72 - 0.78) / 0.78 * 100, 2),
         "akiya_rate_2023": 19.4, "akiya_rate_2018": 19.3, "akiya_rate_2013": 18.6,
-        "price_index": 0.26, "price_ppm2_2024": 104000, "price_ppm2_2019": 91000, "price_ppm2_2015": 82000,
         "is_major_metro": False,
     },
     37: {
@@ -294,7 +258,6 @@ PREFECTURES = {
         "lat": 34.34, "lon": 134.04,
         "pop_2020": 0.95, "pop_2010": 0.99, "pop_change_pct": round((0.95 - 0.99) / 0.99 * 100, 2),
         "akiya_rate_2023": 17.6, "akiya_rate_2018": 17.3, "akiya_rate_2013": 16.8,
-        "price_index": 0.33, "price_ppm2_2024": 132000, "price_ppm2_2019": 115000, "price_ppm2_2015": 103000,
         "is_major_metro": False,
     },
     38: {
@@ -302,7 +265,6 @@ PREFECTURES = {
         "lat": 33.84, "lon": 132.77,
         "pop_2020": 1.33, "pop_2010": 1.43, "pop_change_pct": round((1.33 - 1.43) / 1.43 * 100, 2),
         "akiya_rate_2023": 17.5, "akiya_rate_2018": 17.4, "akiya_rate_2013": 17.1,
-        "price_index": 0.31, "price_ppm2_2024": 124000, "price_ppm2_2019": 108000, "price_ppm2_2015": 97000,
         "is_major_metro": False,
     },
     39: {
@@ -310,7 +272,6 @@ PREFECTURES = {
         "lat": 33.56, "lon": 133.53,
         "pop_2020": 0.70, "pop_2010": 0.76, "pop_change_pct": round((0.70 - 0.76) / 0.76 * 100, 2),
         "akiya_rate_2023": 18.9, "akiya_rate_2018": 19.4, "akiya_rate_2013": 18.9,
-        "price_index": 0.26, "price_ppm2_2024": 104000, "price_ppm2_2019": 91000, "price_ppm2_2015": 82000,
         "is_major_metro": False,
     },
     40: {
@@ -318,7 +279,6 @@ PREFECTURES = {
         "lat": 33.61, "lon": 130.42,
         "pop_2020": 5.14, "pop_2010": 5.07, "pop_change_pct": round((5.14 - 5.07) / 5.07 * 100, 2),
         "akiya_rate_2023": 13.3, "akiya_rate_2018": 13.3, "akiya_rate_2013": 13.0,
-        "price_index": 0.56, "price_ppm2_2024": 224000, "price_ppm2_2019": 192000, "price_ppm2_2015": 168000,
         "is_major_metro": True,
     },
     41: {
@@ -326,7 +286,6 @@ PREFECTURES = {
         "lat": 33.25, "lon": 130.30,
         "pop_2020": 0.81, "pop_2010": 0.85, "pop_change_pct": round((0.81 - 0.85) / 0.85 * 100, 2),
         "akiya_rate_2023": 14.0, "akiya_rate_2018": 13.9, "akiya_rate_2013": 13.8,
-        "price_index": 0.27, "price_ppm2_2024": 108000, "price_ppm2_2019": 94000, "price_ppm2_2015": 85000,
         "is_major_metro": False,
     },
     42: {
@@ -334,7 +293,6 @@ PREFECTURES = {
         "lat": 32.74, "lon": 129.87,
         "pop_2020": 1.31, "pop_2010": 1.43, "pop_change_pct": round((1.31 - 1.43) / 1.43 * 100, 2),
         "akiya_rate_2023": 15.5, "akiya_rate_2018": 15.5, "akiya_rate_2013": 15.2,
-        "price_index": 0.28, "price_ppm2_2024": 112000, "price_ppm2_2019": 98000, "price_ppm2_2015": 88000,
         "is_major_metro": False,
     },
     43: {
@@ -342,7 +300,6 @@ PREFECTURES = {
         "lat": 32.79, "lon": 130.74,
         "pop_2020": 1.74, "pop_2010": 1.82, "pop_change_pct": round((1.74 - 1.82) / 1.82 * 100, 2),
         "akiya_rate_2023": 14.2, "akiya_rate_2018": 13.7, "akiya_rate_2013": 13.7,
-        "price_index": 0.30, "price_ppm2_2024": 120000, "price_ppm2_2019": 105000, "price_ppm2_2015": 94000,
         "is_major_metro": False,
     },
     44: {
@@ -350,7 +307,6 @@ PREFECTURES = {
         "lat": 33.24, "lon": 131.61,
         "pop_2020": 1.12, "pop_2010": 1.20, "pop_change_pct": round((1.12 - 1.20) / 1.20 * 100, 2),
         "akiya_rate_2023": 15.4, "akiya_rate_2018": 15.2, "akiya_rate_2013": 15.0,
-        "price_index": 0.30, "price_ppm2_2024": 120000, "price_ppm2_2019": 105000, "price_ppm2_2015": 94000,
         "is_major_metro": False,
     },
     45: {
@@ -358,7 +314,6 @@ PREFECTURES = {
         "lat": 31.91, "lon": 131.42,
         "pop_2020": 1.07, "pop_2010": 1.14, "pop_change_pct": round((1.07 - 1.14) / 1.14 * 100, 2),
         "akiya_rate_2023": 16.1, "akiya_rate_2018": 16.2, "akiya_rate_2013": 15.9,
-        "price_index": 0.26, "price_ppm2_2024": 104000, "price_ppm2_2019": 91000, "price_ppm2_2015": 82000,
         "is_major_metro": False,
     },
     46: {
@@ -366,7 +321,6 @@ PREFECTURES = {
         "lat": 31.56, "lon": 130.56,
         "pop_2020": 1.59, "pop_2010": 1.70, "pop_change_pct": round((1.59 - 1.70) / 1.70 * 100, 2),
         "akiya_rate_2023": 15.5, "akiya_rate_2018": 15.4, "akiya_rate_2013": 15.0,
-        "price_index": 0.28, "price_ppm2_2024": 112000, "price_ppm2_2019": 98000, "price_ppm2_2015": 88000,
         "is_major_metro": False,
     },
     47: {
@@ -374,14 +328,12 @@ PREFECTURES = {
         "lat": 26.21, "lon": 127.68,
         "pop_2020": 1.47, "pop_2010": 1.39, "pop_change_pct": round((1.47 - 1.39) / 1.39 * 100, 2),
         "akiya_rate_2023": 10.0, "akiya_rate_2018": 10.4, "akiya_rate_2013": 10.4,
-        "price_index": 0.48, "price_ppm2_2024": 192000, "price_ppm2_2019": 162000, "price_ppm2_2015": 140000,
         "is_major_metro": False,
     },
 }
 
 REGIONS = ["Hokkaido", "Tohoku", "Kanto", "Chubu", "Kansai", "Chugoku", "Shikoku", "Kyushu", "Okinawa"]
 
-NATIONAL_AVG_PPM2 = {2015: 285000, 2019: 335000, 2024: 400000}
 
 # Maps our name_en to the exact 'nam' property in dataofjapan/land japan.geojson
 _GEO_NAME_OVERRIDES = {

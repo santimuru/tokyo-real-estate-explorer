@@ -14,7 +14,7 @@ from utils.styles import (
     inject_css, page_header, section_title, callout, kpi_card,
     footer, plotly_base, nav_top, is_dark,
 )
-from utils.prefecture_data import get_all_as_df, NATIONAL_AVG_PPM2
+from utils.prefecture_data import get_all_as_df
 
 st.set_page_config(
     page_title="Japan Overview · Japan RE",
@@ -31,34 +31,19 @@ page_header(
     eyebrow="Japan Real Estate Intelligence · National Overview",
     title="47 Prefectures. Where Is the Money Going?",
     desc=(
-        "Tokyo trades at 17× the national median — but the real story is more nuanced. "
-        "Prices rose everywhere in 2020–2024, regional cities outpaced Tokyo in growth, "
-        "and 9 million homes now sit empty. This is the full picture."
+        "Real transaction data across all 47 prefectures — sourced directly from the MLIT "
+        "Real Estate Information Library. Price geography, growth trends, and Japan's vacant home crisis."
     ),
-    badges=["47 Prefectures", "2015–2024", "MLIT + Housing Survey"],
+    badges=["47 Prefectures", "2024–2025", "MLIT XIT001 API"],
 )
 
-_data_note_lines: list[str] = []
-if PARQUET_PATH.exists():
-    _data_note_lines.append(
-        "✓ <strong>2020–2024 prefecture prices</strong> are <strong>API-derived medians</strong> "
-        "from MLIT XIT001 (pre-aggregated from real transactions across all 47 prefectures)."
-    )
-    _data_note_lines.append(
-        "ℹ️ <strong>2015 and 2019 prices</strong>, <strong>akiya rates</strong>, and <strong>population</strong> "
-        "are curated from MLIT aggregate reports, the Japan Housing &amp; Land Survey (2013/2018/2023), "
-        "and the Statistics Bureau census."
-    )
-else:
-    _data_note_lines.append(
-        "ℹ️ <strong>Data note:</strong> Prefecture-level prices and akiya rates on this page are "
-        "<strong>curated estimates</strong> from MLIT aggregate reports, REINS data, and the Japan Housing "
-        "&amp; Land Survey (2013/2018/2023). Population figures from the Statistics Bureau census."
-    )
-callout("<br><br>".join(_data_note_lines))
+callout(
+    "✓ All price data on this page are <strong>real transaction medians</strong> from the "
+    "MLIT XIT001 API — aggregated from hundreds of thousands of actual property deals across Japan. "
+    "Akiya rates and population figures are from the Japan Housing &amp; Land Survey and Statistics Bureau census."
+)
 
 # ── Data ───────────────────────────────────────────────────────────────────────
-USE_API_AGGREGATES = PARQUET_PATH.exists()
 
 
 @st.cache_data(show_spinner=False, ttl=86400)
@@ -70,34 +55,31 @@ def load_japan_geojson():
 @st.cache_data(show_spinner=False)
 def load_pref_df():
     df = get_all_as_df()
-    df["rank_2024"] = df["price_ppm2_2024"].rank(ascending=False).astype(int)
-    df["price_change_pct"] = (df["price_ppm2_2024"] - df["price_ppm2_2015"]) / df["price_ppm2_2015"] * 100
+    df["pref_code_str"] = df["code"].astype(int).astype(str).str.zfill(2)
 
-    # If pre-cached MLIT aggregates exist, replace curated 2024 prices with
-    # API-derived medians AND switch growth window to 2020→2024 (both API,
-    # apples-to-apples). 2015/2019 curated kept for historical context only.
-    if USE_API_AGGREGATES:
-        agg = pd.read_parquet(PARQUET_PATH)
-        agg["prefecture_code"] = agg["prefecture_code"].astype(str).str.zfill(2)
-        df["pref_code_str"] = df["code"].astype(int).astype(str).str.zfill(2)
+    agg = pd.read_parquet(PARQUET_PATH)
+    agg["prefecture_code"] = agg["prefecture_code"].astype(str).str.zfill(2)
 
-        for year in (2020, 2024):
-            slice_y = agg[agg["tx_year"] == year][["prefecture_code", "median_ppm2"]]
-            slice_y = slice_y.rename(columns={"median_ppm2": f"api_ppm2_{year}"})
-            df = df.merge(slice_y, left_on="pref_code_str", right_on="prefecture_code", how="left")
-            df = df.drop(columns=["prefecture_code"])
+    for year in agg["tx_year"].unique():
+        slice_y = agg[agg["tx_year"] == year][["prefecture_code", "median_ppm2"]]
+        slice_y = slice_y.rename(columns={"median_ppm2": f"price_ppm2_{year}"})
+        df = df.merge(slice_y, left_on="pref_code_str", right_on="prefecture_code", how="left")
+        df = df.drop(columns=["prefecture_code"])
 
-        df["price_ppm2_2024"] = df["api_ppm2_2024"].fillna(df["price_ppm2_2024"]).astype(int)
-        df["rank_2024"] = df["price_ppm2_2024"].rank(ascending=False).astype(int)
-        # Real 4-year growth from API
-        df["price_change_pct"] = (
-            (df["api_ppm2_2024"] - df["api_ppm2_2020"]) / df["api_ppm2_2020"] * 100
-        ).fillna(0)
-    return df
+    years_available = sorted(agg["tx_year"].unique())
+    first_yr, last_yr = years_available[0], years_available[-1]
+    df["price_change_pct"] = (
+        (df[f"price_ppm2_{last_yr}"] - df[f"price_ppm2_{first_yr}"]) /
+        df[f"price_ppm2_{first_yr}"] * 100
+    ).fillna(0)
+    df["rank_latest"] = df[f"price_ppm2_{last_yr}"].rank(ascending=False).astype(int)
+    return df, years_available
 
 
-df = load_pref_df()
-PRICE_COLS = {2015: "price_ppm2_2015", 2019: "price_ppm2_2019", 2024: "price_ppm2_2024"}
+df, YEARS_AVAILABLE = load_pref_df()
+PRICE_COLS = {yr: f"price_ppm2_{yr}" for yr in YEARS_AVAILABLE}
+LATEST_YEAR = YEARS_AVAILABLE[-1]
+FIRST_YEAR  = YEARS_AVAILABLE[0]
 
 
 # ── Tabs ───────────────────────────────────────────────────────────────────────
@@ -112,7 +94,7 @@ tab_map, tab_demo, tab_akiya = st.tabs([
 with tab_map:
     section_title("Real Estate Prices Across Japan", "Median ¥/m² — use the selector to compare years")
 
-    year_sel  = st.radio("Select year", [2015, 2019, 2024], index=2, horizontal=True)
+    year_sel  = st.radio("Select year", YEARS_AVAILABLE, index=len(YEARS_AVAILABLE)-1, horizontal=True)
     price_col = PRICE_COLS[year_sel]
 
     tokyo_price = df.loc[df["name_en"] == "Tokyo", price_col].iloc[0]
@@ -121,7 +103,7 @@ with tab_map:
     premium     = tokyo_price / nat_median
 
     c1, c2, c3, c4 = st.columns(4)
-    with c1: kpi_card("Tokyo ¥/m²",      f"¥{tokyo_price/10000:.0f}万",  f"#{df.loc[df['name_en']=='Tokyo','rank_2024'].iloc[0]} nationally", accent=True)
+    with c1: kpi_card("Tokyo ¥/m²",      f"¥{tokyo_price/10000:.0f}万",  f"#{df.loc[df['name_en']=='Tokyo','rank_latest'].iloc[0]} nationally", accent=True)
     with c2: kpi_card("National median", f"¥{nat_median/10000:.0f}万",   f"{year_sel}")
     with c3: kpi_card("Tokyo premium",   f"{premium:.1f}×",              "vs national median", accent=True)
     with c4: kpi_card("Most affordable", cheapest["name_en"],            f"¥{cheapest[price_col]/10000:.0f}万/m²")
@@ -143,14 +125,13 @@ with tab_map:
     except Exception as exc:
         st.warning(f"Map unavailable: {exc}")
 
-    tokyo_2015 = df.loc[df["name_en"] == "Tokyo", "price_ppm2_2015"].iloc[0]
-    gap_2015   = tokyo_2015 / df["price_ppm2_2015"].min()
-    gap_2024   = df.loc[df["name_en"] == "Tokyo", "price_ppm2_2024"].iloc[0] / df["price_ppm2_2024"].min()
+    gap_first  = df.loc[df["name_en"] == "Tokyo", f"price_ppm2_{FIRST_YEAR}"].iloc[0] / df[f"price_ppm2_{FIRST_YEAR}"].min()
+    gap_latest = df.loc[df["name_en"] == "Tokyo", f"price_ppm2_{LATEST_YEAR}"].iloc[0] / df[f"price_ppm2_{LATEST_YEAR}"].min()
     callout(
-        f"<strong>The gap is widening.</strong> In 2015, Tokyo traded at "
-        f"<strong>{gap_2015:.1f}×</strong> the cheapest prefecture. By 2024 that multiple grew to "
-        f"<strong>{gap_2024:.1f}×</strong> — evidence that Japan's real estate boom is highly concentrated. "
-        f"Near-zero rates lifted prices everywhere, but Tokyo and a handful of metros pulled far ahead."
+        f"<strong>The concentration is stark.</strong> In {FIRST_YEAR}, Tokyo traded at "
+        f"<strong>{gap_first:.1f}×</strong> the cheapest prefecture. In {LATEST_YEAR} that multiple is "
+        f"<strong>{gap_latest:.1f}×</strong> — evidence that Japan's real estate market remains highly concentrated "
+        f"in a handful of metros while rural prefectures lag."
     )
 
     col_a, col_b = st.columns(2)
@@ -170,11 +151,12 @@ with tab_map:
         st.dataframe(bot10[["Prefecture", "日本語", "¥/m²"]], use_container_width=True)
 
 
+
 # ══════════════════════════════════════════════════════════════════════
 # TAB 2 — DEMOGRAPHICS
 # ══════════════════════════════════════════════════════════════════════
 with tab_demo:
-    _growth_window = "2020–2024" if USE_API_AGGREGATES else "2015–2024"
+    _growth_window = f"{FIRST_YEAR}–{LATEST_YEAR}"
     section_title("Population Decline vs Price Appreciation",
                   f"2010–2020 population change vs {_growth_window} price growth")
 
@@ -189,26 +171,16 @@ with tab_demo:
     with c3: kpi_card("Tokyo price growth",    f"+{tokyo_price_chg:.0f}%",  _growth_window, accent=True)
     with c4: kpi_card("Prefectures growing",   f"{growing}/47",             "Population 2010→2020")
 
-    if USE_API_AGGREGATES:
-        top3_growth = df.nlargest(3, "price_change_pct")[["name_en", "price_change_pct"]]
-        top3_str = ", ".join(
-            f"<strong>{r['name_en']}</strong> (+{r['price_change_pct']:.0f}%)"
-            for _, r in top3_growth.iterrows()
-        )
-        callout(
-            f"Surprising story: <strong>regional cities are outpacing Tokyo</strong>. "
-            f"Across 2020-2024, the strongest price growth happened in {top3_str} — "
-            f"driven by tourism rebound, semiconductor investment (Hokkaido), and remote-work migration. "
-            f"Tokyo (+{tokyo_price_chg:.0f}%) grew below the national median (+{avg_price_change:.0f}%). "
-            f"Each bubble below is a prefecture, sized by its 2024 median ¥/m²."
-        )
-    else:
-        callout(
-            "Japan's real estate story isn't only about population — it's also about "
-            "<strong>urbanisation concentration</strong>. Tokyo, Osaka, and Fukuoka absorbed most "
-            "domestic migration, compressing demand into a handful of metros while rural prefectures "
-            "lost people. Each bubble below is a prefecture, sized by its 2024 median ¥/m²."
-        )
+    top3_growth = df.nlargest(3, "price_change_pct")[["name_en", "price_change_pct"]]
+    top3_str = ", ".join(
+        f"<strong>{r['name_en']}</strong> (+{r['price_change_pct']:.0f}%)"
+        for _, r in top3_growth.iterrows()
+    )
+    callout(
+        f"Strongest price growth {_growth_window}: {top3_str}. "
+        f"Tokyo (+{tokyo_price_chg:.0f}%) vs national median (+{avg_price_change:.0f}%). "
+        f"Each bubble is a prefecture, sized by {LATEST_YEAR} median ¥/m²."
+    )
 
     m_coef, b_coef = np.polyfit(df["pop_change_pct"], df["price_change_pct"], 1)
     corr = df["pop_change_pct"].corr(df["price_change_pct"])
@@ -222,7 +194,7 @@ with tab_demo:
     base, grid, zero = plotly_base(500)
     fig_scatter = px.scatter(
         df, x="pop_change_pct", y="price_change_pct",
-        color="is_major_metro", size="price_ppm2_2024", size_max=28,
+        color="is_major_metro", size=f"price_ppm2_{LATEST_YEAR}", size_max=28,
         color_discrete_map={True: "#3B82F6", False: "#94A3B8"},
         labels={
             "pop_change_pct":   "Population change 2010–2020 (%)",
@@ -276,7 +248,7 @@ with tab_demo:
         + "."
     )
 
-    section_title(f"Top 10 by price growth ({_growth_window})")
+    section_title(f"Top 10 by price growth ({_growth_window})", "YoY appreciation — real MLIT transaction data")
     top_growth = df.nlargest(10, "price_change_pct")[["name_en", "price_change_pct", "is_major_metro"]].copy()
     top_growth_sorted = top_growth.sort_values("price_change_pct")
     base2, grid2, _ = plotly_base(320)
