@@ -21,6 +21,7 @@ import os
 import re
 import time
 from datetime import datetime
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
@@ -545,12 +546,12 @@ def load_city_data(pref_code: str, api_key: str, start_year: int = 2022) -> pd.D
 # PUBLIC ENTRY POINT
 # ──────────────────────────────────────────────────────────────────
 
+_WARD_PARQUET = Path(__file__).resolve().parent.parent / "data" / "ward_transactions.parquet"
+
+
 def load_data() -> pd.DataFrame:
-    """
-    Load transaction data from the configured source.
-    Controlled by env var DATA_SOURCE ('synthetic' | 'mlit_api').
-    Defaults to 'synthetic'.
-    """
+    if _WARD_PARQUET.exists():
+        return pd.read_parquet(_WARD_PARQUET)
     source = os.environ.get("DATA_SOURCE", "synthetic").lower()
     if source == "mlit_api":
         key = os.environ.get("MLIT_API_KEY", "")
@@ -561,7 +562,8 @@ def load_data() -> pd.DataFrame:
 
 
 def data_source_label() -> str:
-    """Human-readable label for the current data source (shown in UI footer)."""
+    if _WARD_PARQUET.exists():
+        return "Official MLIT Real Estate Information Library API"
     source = os.environ.get("DATA_SOURCE", "synthetic").lower()
     if source == "mlit_api":
         return "Official MLIT Real Estate Information Library API"
